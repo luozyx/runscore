@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>盛大跑分</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.quick-navbar {
+	margin-bottom: 0.5rem;
+	padding-top: 0.2rem;
+	padding-bottom: 0.2rem;
+}
+
+.quick-navbar i {
+	width: 43px;
+	height: 43px;
+	display: block;
+	background-size: 100%;
+}
+
+.login-icon {
+	background-image: url(/images/index/login.png)
+}
+
+.register-icon {
+	background-image: url(/images/index/register.png)
+}
+
+.recharge-icon {
+	background-image: url(/images/index/recharge.png)
+}
+
+.withdraw-icon {
+	background-image: url(/images/index/withdraw.png)
+}
+
+.service-icon {
+	background-image: url(/images/index/service.png)
+}
+
+.bounty-ranking-table {
+	
+}
+
+.bounty-ranking-table th, .bounty-ranking-table td {
+	width: 33%;
+}
+
+.bounty-ranking-table tr, .bounty-ranking-table td {
+	text-align: start;
+}
+
+.bounty-ranking-table td {
+	padding-left: 0.5rem;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="index" v-cloak>
+		<div class="page-body">
+			<nav class="navbar bg-light quick-navbar">
+				<a class="navbar-brand" v-show="!isLoggedInFlag" v-on:click="goTo('/login')"><i class="login-icon"></i> <span>登录</span> </a> <a class="navbar-brand" v-show="!isLoggedInFlag" v-on:click="goTo('/register')"><i class="register-icon"></i><span>注册</span></a> <a class="navbar-brand" v-show="isLoggedInFlag" v-on:click="goTo('/login')"><i class="recharge-icon"></i> <span>充值</span> </a> <a class="navbar-brand" v-show="isLoggedInFlag" v-on:click="goTo('/login')"><i class="withdraw-icon"></i> <span>提现</span> </a> <a class="navbar-brand"><i class="service-icon"></i><span>客服</span></a>
+			</nav>
+			<div class="card" v-show="showTodayBountyRankFlag">
+				<div class="card-header">
+					<span>当日奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTop10BountyRank">累计排行榜&gt;</span>
+				</div>
+				<div class="card-body">
+					<table class="table table-sm bounty-ranking-table">
+						<thead>
+							<tr>
+								<th>排行</th>
+								<th>账号</th>
+								<th>总奖励金额</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(bountyRank,index) in todayBountyRanks">
+								<td><span class="badge" v-bind:class="[index > 2 ? 'badge-success' : 'badge-danger']">{{index + 1}}</span></td>
+								<td>{{bountyRank.userName}}</td>
+								<td>￥{{bountyRank.totalBounty}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="card" v-show="!showTodayBountyRankFlag">
+				<div class="card-header">
+					<span>累计奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTodayTop10BountyRank">今日排行榜&gt;</span>
+				</div>
+				<div class="card-body">
+					<table class="table table-sm bounty-ranking-table">
+						<thead>
+							<tr>
+								<th>排行</th>
+								<th>账号</th>
+								<th>总奖励金额</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(bountyRank,index) in bountyRanks">
+								<td><span class="badge" v-bind:class="[index > 2 ? 'badge-success' : 'badge-danger']">{{index + 1}}</span></td>
+								<td>{{bountyRank.userName}}</td>
+								<td>￥{{bountyRank.totalBounty}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var indexVM = new Vue({
+			el : '#index',
+			data : {
+				isLoggedInFlag : true,
+				showTodayBountyRankFlag : true,
+				todayBountyRanks : [],
+				bountyRanks : []
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '盛大跑分';
+				this.getUserAccountInfo();
+				this.loadTodayTop10BountyRank();
+			},
+			methods : {
+
+				loadTodayTop10BountyRank : function() {
+					var that = this;
+					that.$http.get('/platformOrder/findTodayTop10BountyRank').then(function(res) {
+						that.todayBountyRanks = res.body.data;
+					});
+				},
+
+				loadTop10BountyRank : function() {
+					var that = this;
+					that.$http.get('/platformOrder/findTop10BountyRank').then(function(res) {
+						that.bountyRanks = res.body.data;
+					});
+				},
+				
+				showTodayTop10BountyRank : function() {
+					this.showTodayBountyRankFlag = true;
+					this.loadTodayTop10BountyRank();
+				},
+
+				showTop10BountyRank : function() {
+					this.showTodayBountyRankFlag = false;
+					this.loadTop10BountyRank();
+				},
+
+				/**
+				 * 获取账号登录情况
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						if (res.body.data == null) {
+							that.isLoggedInFlag = false;
+						}
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

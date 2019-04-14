@@ -1,0 +1,19 @@
+create view v_receive_order_situation as
+select 
+SELECT
+	`po`.`received_account_id` AS `received_account_id`,
+	`ua`.`user_name` AS `user_name`,
+	sum( `po`.`gathering_amount` ) AS `total_gathering_amount`,
+	sum( ( CASE WHEN ( `po`.`order_state` = '4' ) THEN `po`.`bounty` ELSE 0 END ) ) AS `total_bounty` 
+FROM
+	( `platform_order` `po` LEFT JOIN `user_account` `ua` ON ( ( `po`.`received_account_id` = `ua`.`id` ) ) ) 
+WHERE
+	(
+	( `po`.`received_account_id` IS NOT NULL ) 
+	AND ( `po`.`received_time` >= str_to_date( date_format( now( ), '%Y-%m-%d' ), '%Y-%m-%d %H:%i:%s' ) ) 
+	AND ( `po`.`received_time` < ( str_to_date( date_format( now( ), '%Y-%m-%d' ), '%Y-%m-%d %H:%i:%s' ) + INTERVAL 1 DAY ) ) 
+	) 
+GROUP BY
+	`po`.`received_account_id`
+
+
