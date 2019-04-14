@@ -44,11 +44,9 @@ public class Constant {
 
 	public static final String 账变日志类型_确认支付扣款 = "3";
 
-	public static final String 账变日志类型_投注返奖 = "4";
+	public static final String 账变日志类型_接单奖励金 = "4";
 
 	public static final String 账变日志类型_账号提现 = "5";
-
-	public static final String 账变日志类型_活动礼金 = "6";
 
 	public static final String 充提日志订单类型_充值 = "1";
 
@@ -61,5 +59,7 @@ public class Constant {
 	public static final String 提现记录状态_审核不通过 = "3";
 
 	public static final String 提现记录状态_已到账 = "4";
+	
+	public static final String 平台订单_已支付订单单号 = "PLATFORM_ORDER_PAID_ORDER_NO";
 
 }

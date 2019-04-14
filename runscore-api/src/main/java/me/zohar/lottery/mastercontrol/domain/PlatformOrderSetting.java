@@ -9,28 +9,22 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.zohar.lottery.common.utils.IdUtils;
 
-/**
- * 注册礼金设置
- * 
- * @author zohar
- * @date 2019年3月10日
- *
- */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "register_amount_setting", schema = "lottery")
+@Table(name = "platform_order_setting")
 @DynamicInsert(true)
 @DynamicUpdate(true)
-public class RegisterAmountSetting {
+public class PlatformOrderSetting {
 
 	/**
 	 * 主键id
@@ -40,30 +34,37 @@ public class RegisterAmountSetting {
 	private String id;
 
 	/**
-	 * 启用标识
+	 * 平台订单有效时长
 	 */
-	private Boolean enabled;
+	private Integer orderEffectiveDuration;
 
 	/**
-	 * 注册礼金
+	 * 接单返水率
 	 */
-	private Double registerAmount;
-	
+	private Double returnWaterRate;
+
+	/**
+	 * 接单返水率启用标识
+	 */
+	private Boolean returnWaterRateEnabled;
+
 	/**
 	 * 最近修改时间
 	 */
 	private Date latelyUpdateTime;
 
-	public void update(Double registerAmount, Boolean enabled) {
-		this.setRegisterAmount(registerAmount);
-		this.setEnabled(enabled);
+	public void update(Integer orderEffectiveDuration, Double returnWaterRate,
+			Boolean returnWaterRateEnabled) {
+		this.setOrderEffectiveDuration(orderEffectiveDuration);
+		this.setReturnWaterRate(returnWaterRate);
+		this.setReturnWaterRateEnabled(returnWaterRateEnabled);
 		this.setLatelyUpdateTime(new Date());
 	}
 
-	public static RegisterAmountSetting build() {
-		RegisterAmountSetting registerAmount = new RegisterAmountSetting();
-		registerAmount.setId(IdUtils.getId());
-		return registerAmount;
+	public static PlatformOrderSetting build() {
+		PlatformOrderSetting platformOrderSetting = new PlatformOrderSetting();
+		platformOrderSetting.setId(IdUtils.getId());
+		return platformOrderSetting;
 	}
 
 }

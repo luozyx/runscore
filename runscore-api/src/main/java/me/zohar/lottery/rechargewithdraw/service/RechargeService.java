@@ -9,7 +9,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -97,7 +99,8 @@ public class RechargeService {
 	 * 核对订单
 	 */
 	@Transactional
-	public void checkOrder(String orderNo, Double actualPayAmount, Date payTime) {
+	public void checkOrder(@NotBlank String orderNo,
+			@NotNull @DecimalMin(value = "0", inclusive = false) Double actualPayAmount, @NotNull Date payTime) {
 		RechargeOrder order = rechargeOrderRepo.findByOrderNo(orderNo);
 		if (order == null) {
 			throw new BizException(BizError.充值订单不存在);
@@ -148,13 +151,13 @@ public class RechargeService {
 		userAccount.setCashDeposit(NumberUtil.round(cashDeposit, 4).doubleValue());
 		userAccountRepo.save(userAccount);
 		accountChangeLogRepo.save(AccountChangeLog.buildWithRecharge(userAccount, rechargeOrder));
-		updateBalanceWithRechargePreferential(userAccount, rechargeOrder.getActualPayAmount());
+		updateCashDepositWithRechargePreferential(userAccount, rechargeOrder.getActualPayAmount());
 	}
-	
+
 	/**
 	 * 获取充值优惠返水金额
 	 */
-	public void updateBalanceWithRechargePreferential(UserAccount userAccount, Double actualPayAmount) {
+	public void updateCashDepositWithRechargePreferential(UserAccount userAccount, Double actualPayAmount) {
 		RechargeSetting setting = rechargeSettingRepo.findTopByOrderByLatelyUpdateTime();
 		if (setting == null || !setting.getReturnWaterRateEnabled() || setting.getReturnWaterRate() == null) {
 			return;
@@ -195,6 +198,7 @@ public class RechargeService {
 		}
 	}
 
+	@ParamValid
 	@Transactional
 	public RechargeOrderVO generateRechargeOrderWithAbcyzf(RechargeOrderParam param) {
 		Integer orderEffectiveDuration = Constant.充值订单默认有效时长;
@@ -211,6 +215,7 @@ public class RechargeService {
 		return RechargeOrderVO.convertFor(rechargeOrder);
 	}
 
+	@ParamValid
 	@Transactional
 	public RechargeOrderVO generateRechargeOrder(RechargeOrderParam param) {
 		Integer orderEffectiveDuration = Constant.充值订单默认有效时长;
@@ -269,7 +274,6 @@ public class RechargeService {
 	 * 
 	 * @param id
 	 */
-	@ParamValid
 	@Transactional
 	public void cancelOrder(@NotBlank String id) {
 		RechargeOrder rechargeOrder = rechargeOrderRepo.getOne(id);

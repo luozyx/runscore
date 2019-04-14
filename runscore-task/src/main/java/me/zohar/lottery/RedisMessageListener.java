@@ -24,12 +24,11 @@ public class RedisMessageListener {
 
 	@Autowired
 	private RechargeService rechargeService;
-
+	
 	@PostConstruct
 	public void init() {
 		listenRechargeSettlement();
 	}
-
 
 	public void listenRechargeSettlement() {
 		new Thread(() -> {
@@ -39,7 +38,7 @@ public class RedisMessageListener {
 					if (StrUtil.isBlank(orderNo)) {
 						continue;
 					}
-					
+
 					ThreadPoolUtils.getRechargeSettlementPool().execute(() -> {
 						try {
 							log.info("系统进行充值结算操作,订单单号为{}", orderNo);

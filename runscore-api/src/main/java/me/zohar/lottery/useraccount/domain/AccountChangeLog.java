@@ -115,6 +115,28 @@ public class AccountChangeLog {
 		log.setUserAccountId(userAccount.getId());
 		return log;
 	}
+	
+	/**
+	 * 构建接单奖励金账变日志
+	 * 
+	 * @param userAccount
+	 * @param returnWater
+	 * @param returnWaterRate
+	 * @return
+	 */
+	public static AccountChangeLog buildWithReceiveOrderBounty(UserAccount userAccount, Double returnWater,
+			Double returnWaterRate) {
+		AccountChangeLog log = new AccountChangeLog();
+		log.setId(IdUtils.getId());
+		log.setOrderNo(log.getId());
+		log.setAccountChangeTime(new Date());
+		log.setAccountChangeTypeCode(Constant.账变日志类型_接单奖励金);
+		log.setAccountChangeAmount(NumberUtil.round(returnWater, 4).doubleValue());
+		log.setNote(MessageFormat.format("接单返水率:{0}%", 5));
+		log.setCashDeposit(userAccount.getCashDeposit());
+		log.setUserAccountId(userAccount.getId());
+		return log;
+	}
 
 	/**
 	 * 构建充值优惠账变日志
@@ -124,15 +146,15 @@ public class AccountChangeLog {
 	 * @param returnWaterRate
 	 * @return
 	 */
-	public static AccountChangeLog buildWithRechargePreferential(UserAccount userAccount, double returnWater,
-			Integer returnWaterRate) {
+	public static AccountChangeLog buildWithRechargePreferential(UserAccount userAccount, Double returnWater,
+			Double returnWaterRate) {
 		AccountChangeLog log = new AccountChangeLog();
 		log.setId(IdUtils.getId());
 		log.setOrderNo(log.getId());
 		log.setAccountChangeTime(new Date());
 		log.setAccountChangeTypeCode(Constant.账变日志类型_充值优惠);
 		log.setAccountChangeAmount(NumberUtil.round(returnWater, 4).doubleValue());
-		log.setNote(MessageFormat.format("充值返水率:{0}%", 5));
+		log.setNote(MessageFormat.format("充值返水率:{0}%", returnWaterRate));
 		log.setCashDeposit(userAccount.getCashDeposit());
 		log.setUserAccountId(userAccount.getId());
 		return log;

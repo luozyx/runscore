@@ -35,6 +35,8 @@ import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.dictconfig.ConfigHolder;
 import me.zohar.lottery.gatheringcode.domain.GatheringCode;
 import me.zohar.lottery.gatheringcode.repo.GatheringCodeRepo;
+import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
+import me.zohar.lottery.mastercontrol.repo.PlatformOrderSettingRepo;
 import me.zohar.lottery.platform.domain.Platform;
 import me.zohar.lottery.platform.domain.PlatformOrder;
 import me.zohar.lottery.platform.domain.ReceiveOrderSituation;
@@ -73,12 +75,15 @@ public class PlatformOrderService {
 
 	@Autowired
 	private AccountChangeLogRepo accountChangeLogRepo;
-	
+
 	@Autowired
 	private TodayReceiveOrderSituationRepo todayReceiveOrderSituationRepo;
-	
+
 	@Autowired
 	private ReceiveOrderSituationRepo receiveOrderSituationRepo;
+
+	@Autowired
+	private PlatformOrderSettingRepo platformOrderSettingRepo;
 
 	@Transactional
 	public void platformConfirmToPaid(@NotBlank String secretKey, @NotBlank String orderId) {
@@ -134,7 +139,6 @@ public class PlatformOrderService {
 	@Transactional
 	public void confirmToPaid(@NotBlank String userAccountId, @NotBlank String orderId) {
 		PlatformOrder platformOrder = platformOrderRepo.findById(orderId).orElse(null);
-		;
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
@@ -157,6 +161,31 @@ public class PlatformOrderService {
 		platformOrder.confirmToPaid();
 		platformOrderRepo.save(platformOrder);
 		accountChangeLogRepo.save(AccountChangeLog.buildWithConfirmToPaid(userAccount, platformOrder));
+		
+		
+	}
+
+	/**
+	 * 接单奖励金结算
+	 */
+	@Transactional
+	public void receiveOrderBountySettlement(PlatformOrder platformOrder, UserAccount userAccount) {
+		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		if (setting == null || !setting.getReturnWaterRateEnabled() || setting.getReturnWaterRate() == null) {
+			platformOrder.updateBounty(0d);
+			platformOrderRepo.save(platformOrder);
+			return;
+		}
+
+		double returnWater = platformOrder.getGatheringAmount() * setting.getReturnWaterRate() * 0.01;
+		double cashDeposit = userAccount.getCashDeposit() + returnWater;
+
+		platformOrder.updateBounty(returnWater);
+		platformOrderRepo.save(platformOrder);
+		userAccount.setCashDeposit(NumberUtil.round(cashDeposit, 4).doubleValue());
+		userAccountRepo.save(userAccount);
+		accountChangeLogRepo.save(
+				AccountChangeLog.buildWithReceiveOrderBounty(userAccount, returnWater, setting.getReturnWaterRate()));
 	}
 
 	@Transactional(readOnly = true)
@@ -230,8 +259,7 @@ public class PlatformOrderService {
 
 	@ParamValid
 	@Transactional(readOnly = true)
-	public PageResult<MyReceiveOrderRecordVO> findMyReceiveOrderRecordByPage(
-			MyReceiveOrderRecordQueryCondParam param) {
+	public PageResult<MyReceiveOrderRecordVO> findMyReceiveOrderRecordByPage(MyReceiveOrderRecordQueryCondParam param) {
 		Specification<PlatformOrder> spec = new Specification<PlatformOrder>() {
 			/**
 			 * 
@@ -254,25 +282,27 @@ public class PlatformOrderService {
 				return predicates.size() > 0 ? builder.and(predicates.toArray(new Predicate[predicates.size()])) : null;
 			}
 		};
-		Page<PlatformOrder> result = platformOrderRepo.findAll(spec, PageRequest.of(param.getPageNum() - 1,
-				param.getPageSize(), Sort.by(Sort.Order.desc("receivedTime"))));
+		Page<PlatformOrder> result = platformOrderRepo.findAll(spec,
+				PageRequest.of(param.getPageNum() - 1, param.getPageSize(), Sort.by(Sort.Order.desc("receivedTime"))));
 		PageResult<MyReceiveOrderRecordVO> pageResult = new PageResult<>(
 				MyReceiveOrderRecordVO.convertFor(result.getContent()), param.getPageNum(), param.getPageSize(),
 				result.getTotalElements());
 		return pageResult;
 	}
-	
+
 	@Cached(name = "todayTop10BountyRank", expire = 300)
 	@Transactional(readOnly = true)
 	public List<BountyRankVO> findTodayTop10BountyRank() {
-		List<TodayReceiveOrderSituation> todayReceiveOrderSituations = todayReceiveOrderSituationRepo.findTop10ByOrderByTotalBountyDesc();
+		List<TodayReceiveOrderSituation> todayReceiveOrderSituations = todayReceiveOrderSituationRepo
+				.findTop10ByOrderByTotalBountyDesc();
 		return BountyRankVO.convertForToday(todayReceiveOrderSituations);
 	}
-	
+
 	@Cached(name = "top10BountyRank", expire = 300)
 	@Transactional(readOnly = true)
 	public List<BountyRankVO> findTop10BountyRank() {
-		List<ReceiveOrderSituation> receiveOrderSituations = receiveOrderSituationRepo.findTop10ByOrderByTotalBountyDesc();
+		List<ReceiveOrderSituation> receiveOrderSituations = receiveOrderSituationRepo
+				.findTop10ByOrderByTotalBountyDesc();
 		return BountyRankVO.convertFor(receiveOrderSituations);
 	}
 

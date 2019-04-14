@@ -7,10 +7,10 @@ import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
-import me.zohar.lottery.mastercontrol.domain.RechargeSetting;
+import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
 
 @Data
-public class RechargeSettingVO {
+public class PlatformOrderSettingVO {
 
 	private String id;
 
@@ -20,12 +20,12 @@ public class RechargeSettingVO {
 	private Integer orderEffectiveDuration;
 
 	/**
-	 * 充值返水率
+	 * 接单返水率
 	 */
 	private Double returnWaterRate;
 
 	/**
-	 * 充值返水率启用标识
+	 * 接单返水率启用标识
 	 */
 	private Boolean returnWaterRateEnabled;
 
@@ -35,12 +35,12 @@ public class RechargeSettingVO {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date latelyUpdateTime;
 
-	public static RechargeSettingVO convertFor(RechargeSetting rechargeSetting) {
-		if (rechargeSetting == null) {
+	public static PlatformOrderSettingVO convertFor(PlatformOrderSetting platformOrderSetting) {
+		if (platformOrderSetting == null) {
 			return null;
 		}
-		RechargeSettingVO vo = new RechargeSettingVO();
-		BeanUtils.copyProperties(rechargeSetting, vo);
+		PlatformOrderSettingVO vo = new PlatformOrderSettingVO();
+		BeanUtils.copyProperties(platformOrderSetting, vo);
 		return vo;
 	}
 

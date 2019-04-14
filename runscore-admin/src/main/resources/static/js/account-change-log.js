@@ -78,12 +78,6 @@ var accountChangeLogVM = new Vue({
 					field : 'orderNo',
 					title : '订单号'
 				}, {
-					field : 'gameName',
-					title : '游戏'
-				}, {
-					field : 'issueNum',
-					title : '期号'
-				}, {
 					field : 'accountChangeTime',
 					title : '账变时间'
 				}, {
@@ -96,8 +90,8 @@ var accountChangeLogVM = new Vue({
 					field : 'accountChangeAmount',
 					title : '账变金额'
 				}, {
-					field : 'balance',
-					title : '余额'
+					field : 'cashDeposit',
+					title : '保证金'
 				} ]
 			});
 		},

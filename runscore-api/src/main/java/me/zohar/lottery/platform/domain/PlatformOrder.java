@@ -82,12 +82,22 @@ public class PlatformOrder {
 	 * 奖励金
 	 */
 	private Double bounty;
+	
+	/**
+	 * 奖励金结算时间
+	 */
+	private Date bountySettlementTime;
 
 	/**
 	 * 乐观锁版本号
 	 */
 	@Version
 	private Long version;
+	
+	public void updateBounty(Double bounty) {
+		this.setBounty(bounty);
+		this.setBountySettlementTime(new Date());
+	}
 	
 	public void platformConfirmToPaid() {
 		this.setOrderState(Constant.平台订单状态_平台已确认支付);

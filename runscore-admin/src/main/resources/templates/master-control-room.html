@@ -56,23 +56,22 @@
 			</div>
 			<div class="col-sm-4">
 				<div class="card">
-					<div class="card-header">新用户注册礼金</div>
+					<div class="card-header">平台订单</div>
 					<div class="card-body">
 						<div class="row">
 							<div class="col-sm-12">
-								<label>注册礼金</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="registerAmount">元</span>
+								<label>平台订单有效时长</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="platformOrderEffectiveDuration">分钟</span>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-sm-12">
-								<label>&nbsp;</label> <span>
-									<div class="custom-control custom-switch custom-control-inline">
-										<input type="checkbox" class="custom-control-input" id="registerAmountEnabled" v-model="registerAmountEnabled"> <label class="custom-control-label" for="registerAmountEnabled">{{registerAmountEnabled ? '启用' : '关闭'}}</label>
-									</div>
-								</span>
+								<label>接单返水率</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="receiveOrderReturnWaterRate">%</span>
+								<div class="custom-control custom-switch custom-control-inline">
+									<input type="checkbox" class="custom-control-input" id="receiveOrderReturnWaterRateEnabled" v-model="receiveOrderReturnWaterRateEnabled"> <label class="custom-control-label" for="receiveOrderReturnWaterRateEnabled">{{receiveOrderReturnWaterRateEnabled ? '启用' : '关闭'}}</label>
+								</div>
 							</div>
 						</div>
-						<button type="button" class="btn btn-success btn-sm" v-on:click="updateRegisterAmountSetting">更新</button>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="updatePlatformOrderSetting">更新</button>
 					</div>
 				</div>
 			</div>

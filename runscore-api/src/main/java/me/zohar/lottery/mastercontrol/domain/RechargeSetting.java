@@ -28,7 +28,7 @@ import me.zohar.lottery.common.utils.IdUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "recharge_setting", schema = "lottery")
+@Table(name = "recharge_setting")
 @DynamicInsert(true)
 @DynamicUpdate(true)
 public class RechargeSetting {
@@ -48,7 +48,7 @@ public class RechargeSetting {
 	/**
 	 * 充值返水率
 	 */
-	private Integer returnWaterRate;
+	private Double returnWaterRate;
 
 	/**
 	 * 充值返水率启用标识
@@ -60,7 +60,7 @@ public class RechargeSetting {
 	 */
 	private Date latelyUpdateTime;
 
-	public void update(Integer orderEffectiveDuration, Integer returnWaterRate, Boolean returnWaterRateEnabled) {
+	public void update(Integer orderEffectiveDuration, Double returnWaterRate, Boolean returnWaterRateEnabled) {
 		this.setOrderEffectiveDuration(orderEffectiveDuration);
 		this.setReturnWaterRate(returnWaterRate);
 		this.setReturnWaterRateEnabled(returnWaterRateEnabled);

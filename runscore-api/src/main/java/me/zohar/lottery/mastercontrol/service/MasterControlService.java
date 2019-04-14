@@ -16,14 +16,14 @@ import org.springframework.validation.annotation.Validated;
 
 import lombok.extern.slf4j.Slf4j;
 import me.zohar.lottery.mastercontrol.domain.InviteRegisterSetting;
+import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
 import me.zohar.lottery.mastercontrol.domain.RechargeSetting;
-import me.zohar.lottery.mastercontrol.domain.RegisterAmountSetting;
 import me.zohar.lottery.mastercontrol.repo.InviteRegisterSettingRepo;
+import me.zohar.lottery.mastercontrol.repo.PlatformOrderSettingRepo;
 import me.zohar.lottery.mastercontrol.repo.RechargeSettingRepo;
-import me.zohar.lottery.mastercontrol.repo.RegisterAmountSettingRepo;
 import me.zohar.lottery.mastercontrol.vo.InviteRegisterSettingVO;
+import me.zohar.lottery.mastercontrol.vo.PlatformOrderSettingVO;
 import me.zohar.lottery.mastercontrol.vo.RechargeSettingVO;
-import me.zohar.lottery.mastercontrol.vo.RegisterAmountSettingVO;
 
 @Validated
 @Service
@@ -34,7 +34,7 @@ public class MasterControlService {
 	private StringRedisTemplate redisTemplate;
 
 	@Autowired
-	private RegisterAmountSettingRepo registerAmountSettingRepo;
+	private PlatformOrderSettingRepo platformOrderSettingRepo;
 
 	@Autowired
 	private InviteRegisterSettingRepo inviteRegisterSettingRepo;
@@ -60,26 +60,22 @@ public class MasterControlService {
 	}
 
 	@Transactional(readOnly = true)
-	public RegisterAmountSettingVO getRegisterAmountSetting() {
-		RegisterAmountSetting setting = registerAmountSettingRepo.findTopByOrderByEnabled();
-		return RegisterAmountSettingVO.convertFor(setting);
+	public PlatformOrderSettingVO getPlatformOrderSetting() {
+		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		return PlatformOrderSettingVO.convertFor(setting);
 	}
 
-	/**
-	 * 更新注册礼金设置
-	 * 
-	 * @param registerAmount
-	 * @param enabled
-	 */
 	@Transactional
-	public void updateRegisterAmountSetting(@NotNull @DecimalMin(value = "0", inclusive = true) Double registerAmount,
-			@NotNull Boolean enabled) {
-		RegisterAmountSetting setting = registerAmountSettingRepo.findTopByOrderByEnabled();
+	public void updatePlatformOrderSetting(
+			@NotNull @DecimalMin(value = "0", inclusive = true) Integer orderEffectiveDuration,
+			@NotNull @DecimalMin(value = "0", inclusive = true) Double returnWaterRate,
+			@NotNull Boolean returnWaterRateEnabled) {
+		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
 		if (setting == null) {
-			setting = RegisterAmountSetting.build();
+			setting = PlatformOrderSetting.build();
 		}
-		setting.update(registerAmount, enabled);
-		registerAmountSettingRepo.save(setting);
+		setting.update(orderEffectiveDuration, returnWaterRate, returnWaterRateEnabled);
+		platformOrderSettingRepo.save(setting);
 	}
 
 	@Transactional(readOnly = true)
@@ -91,7 +87,7 @@ public class MasterControlService {
 	@Transactional
 	public void updateRechargeSetting(
 			@NotNull @DecimalMin(value = "0", inclusive = true) Integer orderEffectiveDuration,
-			@NotNull @DecimalMin(value = "0", inclusive = true) Integer returnWaterRate,
+			@NotNull @DecimalMin(value = "0", inclusive = true) Double returnWaterRate,
 			@NotNull Boolean returnWaterRateEnabled) {
 		RechargeSetting setting = rechargeSettingRepo.findTopByOrderByLatelyUpdateTime();
 		if (setting == null) {

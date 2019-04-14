@@ -10,9 +10,14 @@ import me.zohar.lottery.platform.domain.PlatformOrder;
 public interface PlatformOrderRepo
 		extends JpaRepository<PlatformOrder, String>, JpaSpecificationExecutor<PlatformOrder> {
 
-	List<PlatformOrder> findByOrderStateAndGatheringAmountIsLessThanEqualOrderBySubmitTimeDesc(String orderState, Double gatheringAmount);
+	List<PlatformOrder> findByOrderStateAndGatheringAmountIsLessThanEqualOrderBySubmitTimeDesc(String orderState,
+			Double gatheringAmount);
 
-	List<PlatformOrder> findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
-			List<String> orderStates, String receivedAccountId);
+	List<PlatformOrder> findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(List<String> orderStates,
+			String receivedAccountId);
+
+	PlatformOrder findByOrderNo(String orderNo);
+
+	List<PlatformOrder> findByOrderStateAndBountySettlementTimeIsNull(String orderState);
 
 }

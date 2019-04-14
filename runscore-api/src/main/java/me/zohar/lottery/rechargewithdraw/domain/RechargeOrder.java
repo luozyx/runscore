@@ -104,6 +104,11 @@ public class RechargeOrder {
 	 * 结算时间,即更新到账号保证金的时间
 	 */
 	private Date settlementTime;
+	
+	/**
+	 * 充值优惠结算时间
+	 */
+	private Date rechargePreferentialSettlementTime;
 
 	/**
 	 * 乐观锁版本号

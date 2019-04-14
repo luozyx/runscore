@@ -28,7 +28,7 @@ import me.zohar.lottery.common.utils.IdUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "invite_register_setting", schema = "lottery")
+@Table(name = "invite_register_setting")
 @DynamicInsert(true)
 @DynamicUpdate(true)
 public class InviteRegisterSetting {

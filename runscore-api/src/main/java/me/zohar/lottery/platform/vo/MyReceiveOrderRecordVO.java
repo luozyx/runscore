@@ -50,6 +50,11 @@ public class MyReceiveOrderRecordVO {
 	 */
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date receivedTime;
+	
+	/**
+	 * 奖励金
+	 */
+	private Double bounty;
 
 	public static List<MyReceiveOrderRecordVO> convertFor(List<PlatformOrder> platformOrders) {
 		if (CollectionUtil.isEmpty(platformOrders)) {

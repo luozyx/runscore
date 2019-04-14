@@ -40,16 +40,17 @@ public class MasterControlController {
 		return Result.success();
 	}
 
-	@GetMapping("/getRegisterAmountSetting")
+	@GetMapping("/getPlatformOrderSetting")
 	@ResponseBody
-	public Result getRegisterAmountSetting() {
-		return Result.success().setData(service.getRegisterAmountSetting());
+	public Result getPlatformOrderSetting() {
+		return Result.success().setData(service.getPlatformOrderSetting());
 	}
 
-	@PostMapping("/updateRegisterAmountSetting")
+	@PostMapping("/updatePlatformOrderSetting")
 	@ResponseBody
-	public Result updateRegisterAmountSetting(Double registerAmount, Boolean enabled) {
-		service.updateRegisterAmountSetting(registerAmount, enabled);
+	public Result updatePlatformOrderSetting(Integer orderEffectiveDuration, Double returnWaterRate,
+			Boolean returnWaterRateEnabled) {
+		service.updatePlatformOrderSetting(orderEffectiveDuration, returnWaterRate, returnWaterRateEnabled);
 		return Result.success();
 	}
 
@@ -61,7 +62,7 @@ public class MasterControlController {
 
 	@PostMapping("/updateRechargeSetting")
 	@ResponseBody
-	public Result updateRechargeSetting(Integer orderEffectiveDuration, Integer returnWaterRate,
+	public Result updateRechargeSetting(Integer orderEffectiveDuration, Double returnWaterRate,
 			Boolean returnWaterRateEnabled) {
 		service.updateRechargeSetting(orderEffectiveDuration, returnWaterRate, returnWaterRateEnabled);
 		return Result.success();

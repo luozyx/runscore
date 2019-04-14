@@ -16,7 +16,8 @@
 <link href="/css/common/common.css" rel="stylesheet" type="text/css">
 <style type="text/css">
 .withdraw-form {
-	padding-left: 3rem;
+	padding-left: 1rem;
+	padding-right: 1rem;
 	padding-top: 3rem;
 }
 
@@ -60,7 +61,7 @@
 				</div>
 				<div class="row">
 					<div class="col-sm-9 offset-sm-3 withdraw-form-item withdraw-form-highlight-item">
-						<label>佣金</label> <span>{{commission}}</span>元
+						<label>保证金</label> <span>{{cashDeposit}}</span>元
 					</div>
 				</div>
 				<div class="row">
@@ -79,8 +80,8 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-sm-6" style="margin-left: 4rem;">
-						<button type="button" class="btn btn-success btn-lg" v-on:click="confirmWithdraw">确认提现</button>
+					<div class="col-sm-12">
+						<button type="button" class="btn btn-success btn-lg btn-block" v-on:click="confirmWithdraw">确认提现</button>
 					</div>
 				</div>
 			</div>
@@ -91,7 +92,7 @@
 			el : '#withdraw',
 			data : {
 				bankInfo : '',
-				commission : '',
+				cashDeposit : '',
 				withdrawAmount : '',
 				moneyPwd : ''
 			},
@@ -120,7 +121,7 @@
 					var that = this;
 					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
 						if (res.body.data != null) {
-							that.commission = res.body.data.commission;
+							that.cashDeposit = res.body.data.cashDeposit;
 						}
 					});
 				},
@@ -131,7 +132,7 @@
 						layer.alert('请输入提现金额');
 						return;
 					}
-					if (that.withdrawAmount > that.commission) {
+					if (that.withdrawAmount > that.cashDeposit) {
 						layer.alert('提现金额不足');
 						return;
 					}

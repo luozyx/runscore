@@ -7,10 +7,11 @@ var masterControlRoomVM = new Vue({
 		inviteCodeEffectiveDuration : '',
 		inviteRegisterEnabled : false,
 		/**
-		 * 新用户注册礼金start
+		 * 平台订单start
 		 */
-		registerAmount : '',
-		registerAmountEnabled : false,
+		platformOrderEffectiveDuration : '',
+		receiveOrderReturnWaterRate : '',
+		receiveOrderReturnWaterRateEnabled : false,
 		/**
 		 * 充值start
 		 */
@@ -28,7 +29,7 @@ var masterControlRoomVM = new Vue({
 	},
 	mounted : function() {
 		this.loadInviteRegisterSetting();
-		this.loadRegisterAmountSetting();
+		this.loadPlatformOrderSetting();
 		this.loadRechargeSetting();
 	},
 	methods : {
@@ -78,29 +79,39 @@ var masterControlRoomVM = new Vue({
 			});
 		},
 
-		loadRegisterAmountSetting : function() {
+		loadPlatformOrderSetting : function() {
 			var that = this;
-			that.$http.get('/masterControl/getRegisterAmountSetting').then(function(res) {
+			that.$http.get('/masterControl/getPlatformOrderSetting').then(function(res) {
 				if (res.body.data != null) {
-					that.registerAmount = res.body.data.registerAmount;
-					that.registerAmountEnabled = res.body.data.enabled;
+					that.platformOrderEffectiveDuration = res.body.data.orderEffectiveDuration;
+					that.receiveOrderReturnWaterRate = res.body.data.returnWaterRate;
+					that.receiveOrderReturnWaterRateEnabled = res.body.data.returnWaterRateEnabled;
 				}
 			});
 		},
 
-		updateRegisterAmountSetting : function() {
+		updatePlatformOrderSetting : function() {
 			var that = this;
-			var registerAmount = that.registerAmount;
-			if (registerAmount == null || registerAmount == '') {
-				layer.alert('请输入注册礼金', {
+			var platformOrderEffectiveDuration = that.platformOrderEffectiveDuration;
+			if (platformOrderEffectiveDuration == null || platformOrderEffectiveDuration == '') {
+				layer.alert('请输入平台订单有效时长', {
 					title : '提示',
 					icon : 7,
 					time : 3000
 				});
 				return;
 			}
-			var registerAmountEnabled = that.registerAmountEnabled;
-			if (registerAmountEnabled == null) {
+			var receiveOrderReturnWaterRate = that.receiveOrderReturnWaterRate;
+			if (receiveOrderReturnWaterRate == null || receiveOrderReturnWaterRate == '') {
+				layer.alert('请输入接单返水率', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			var receiveOrderReturnWaterRateEnabled = that.receiveOrderReturnWaterRateEnabled;
+			if (receiveOrderReturnWaterRateEnabled == null) {
 				layer.alert('请选择是否启用', {
 					title : '提示',
 					icon : 7,
@@ -108,9 +119,11 @@ var masterControlRoomVM = new Vue({
 				});
 				return;
 			}
-			that.$http.post('/masterControl/updateRegisterAmountSetting', {
-				registerAmount : registerAmount,
-				enabled : registerAmountEnabled,
+
+			that.$http.post('/masterControl/updatePlatformOrderSetting', {
+				orderEffectiveDuration : platformOrderEffectiveDuration,
+				returnWaterRate : receiveOrderReturnWaterRate,
+				returnWaterRateEnabled : receiveOrderReturnWaterRateEnabled
 			}, {
 				emulateJSON : true
 			}).then(function(res) {
@@ -119,7 +132,7 @@ var masterControlRoomVM = new Vue({
 					time : 3000,
 					shade : false
 				});
-				that.loadRegisterAmountSetting();
+				that.loadPlatformOrderSetting();
 			});
 		},
 
@@ -167,7 +180,7 @@ var masterControlRoomVM = new Vue({
 			that.$http.post('/masterControl/updateRechargeSetting', {
 				orderEffectiveDuration : rechargeOrderEffectiveDuration,
 				returnWaterRate : rechargeReturnWaterRate,
-				returnWaterRateEnabled : rechargeReturnWaterRateEnabled,
+				returnWaterRateEnabled : rechargeReturnWaterRateEnabled
 			}, {
 				emulateJSON : true
 			}).then(function(res) {
