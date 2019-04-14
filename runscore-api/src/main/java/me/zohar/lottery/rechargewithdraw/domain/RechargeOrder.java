@@ -106,11 +106,6 @@ public class RechargeOrder {
 	private Date settlementTime;
 	
 	/**
-	 * 充值优惠结算时间
-	 */
-	private Date rechargePreferentialSettlementTime;
-
-	/**
 	 * 乐观锁版本号
 	 */
 	@Version

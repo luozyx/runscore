@@ -22,26 +22,6 @@ public class PageController {
 	}
 
 	/**
-	 * 游戏管理页面
-	 * 
-	 * @return
-	 */
-	@GetMapping("/game-manage")
-	public String gameManage() {
-		return "game-manage";
-	}
-
-	/**
-	 * 开奖情况
-	 * 
-	 * @return
-	 */
-	@GetMapping("/lottery-situation")
-	public String lotterySituation() {
-		return "lottery-situation";
-	}
-
-	/**
 	 * 投注记录
 	 * 
 	 * @return
@@ -120,5 +100,26 @@ public class PageController {
 	public String masterControlRoom() {
 		return "master-control-room";
 	}
+	
+	/**
+	 * 平台订单
+	 * 
+	 * @return
+	 */
+	@GetMapping("/platform-order")
+	public String platformOrder() {
+		return "platform-order";
+	}
+	
+	/**
+	 * 接入平台
+	 * 
+	 * @return
+	 */
+	@GetMapping("/platform")
+	public String platform() {
+		return "platform";
+	}
+
 
 }

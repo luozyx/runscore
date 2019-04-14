@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotBlank;
@@ -42,6 +43,7 @@ import me.zohar.lottery.platform.domain.PlatformOrder;
 import me.zohar.lottery.platform.domain.ReceiveOrderSituation;
 import me.zohar.lottery.platform.domain.TodayReceiveOrderSituation;
 import me.zohar.lottery.platform.param.MyReceiveOrderRecordQueryCondParam;
+import me.zohar.lottery.platform.param.PlatformOrderQueryCondParam;
 import me.zohar.lottery.platform.param.StartOrderParam;
 import me.zohar.lottery.platform.repo.PlatformOrderRepo;
 import me.zohar.lottery.platform.repo.PlatformRepo;
@@ -49,6 +51,8 @@ import me.zohar.lottery.platform.repo.ReceiveOrderSituationRepo;
 import me.zohar.lottery.platform.repo.TodayReceiveOrderSituationRepo;
 import me.zohar.lottery.platform.vo.BountyRankVO;
 import me.zohar.lottery.platform.vo.MyReceiveOrderRecordVO;
+import me.zohar.lottery.platform.vo.MyWaitConfirmOrderVO;
+import me.zohar.lottery.platform.vo.MyWaitReceivingOrderVO;
 import me.zohar.lottery.platform.vo.OrderGatheringCodeVO;
 import me.zohar.lottery.platform.vo.PlatformOrderVO;
 import me.zohar.lottery.useraccount.domain.AccountChangeLog;
@@ -161,8 +165,7 @@ public class PlatformOrderService {
 		platformOrder.confirmToPaid();
 		platformOrderRepo.save(platformOrder);
 		accountChangeLogRepo.save(AccountChangeLog.buildWithConfirmToPaid(userAccount, platformOrder));
-		
-		
+		receiveOrderBountySettlement(platformOrder, userAccount);
 	}
 
 	/**
@@ -189,13 +192,14 @@ public class PlatformOrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<PlatformOrderVO> findMyWaitConfirmOrder(@NotBlank String userAccountId) {
-		return PlatformOrderVO.convertFor(platformOrderRepo.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
-				Arrays.asList(Constant.平台订单状态_已接单, Constant.平台订单状态_平台已确认支付), userAccountId));
+	public List<MyWaitConfirmOrderVO> findMyWaitConfirmOrder(@NotBlank String userAccountId) {
+		return MyWaitConfirmOrderVO
+				.convertFor(platformOrderRepo.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
+						Arrays.asList(Constant.平台订单状态_已接单, Constant.平台订单状态_平台已确认支付), userAccountId));
 	}
 
 	@Transactional(readOnly = true)
-	public List<PlatformOrderVO> findMyWaitReceivingOrder(@NotBlank String userAccountId) {
+	public List<MyWaitReceivingOrderVO> findMyWaitReceivingOrder(@NotBlank String userAccountId) {
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
 		Double waitConfirmOrderAmount = 0d;
 		List<PlatformOrder> waitConfirmOrders = platformOrderRepo
@@ -209,7 +213,7 @@ public class PlatformOrderService {
 		List<PlatformOrder> waitReceivingOrders = platformOrderRepo
 				.findByOrderStateAndGatheringAmountIsLessThanEqualOrderBySubmitTimeDesc(Constant.平台订单状态_等待接单,
 						surplusCashDeposit);
-		return PlatformOrderVO.convertFor(waitReceivingOrders);
+		return MyWaitReceivingOrderVO.convertFor(waitReceivingOrders);
 	}
 
 	@ParamValid
@@ -219,7 +223,14 @@ public class PlatformOrderService {
 		if (platform == null) {
 			throw new BizException(BizError.平台未接入);
 		}
-		PlatformOrder platformOrder = param.convertToPo(platform.getId());
+
+		Integer orderEffectiveDuration = Constant.平台订单默认有效时长;
+		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		if (setting != null) {
+			orderEffectiveDuration = setting.getOrderEffectiveDuration();
+		}
+
+		PlatformOrder platformOrder = param.convertToPo(platform.getId(), orderEffectiveDuration);
 		platformOrderRepo.save(platformOrder);
 		return PlatformOrderVO.convertFor(platformOrder);
 	}
@@ -304,6 +315,68 @@ public class PlatformOrderService {
 		List<ReceiveOrderSituation> receiveOrderSituations = receiveOrderSituationRepo
 				.findTop10ByOrderByTotalBountyDesc();
 		return BountyRankVO.convertFor(receiveOrderSituations);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResult<PlatformOrderVO> findPlatformOrderByPage(PlatformOrderQueryCondParam param) {
+		Specification<PlatformOrder> spec = new Specification<PlatformOrder>() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			public Predicate toPredicate(Root<PlatformOrder> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+				List<Predicate> predicates = new ArrayList<Predicate>();
+				if (StrUtil.isNotBlank(param.getOrderNo())) {
+					predicates.add(builder.equal(root.get("orderNo"), param.getOrderNo()));
+				}
+
+				if (StrUtil.isNotBlank(param.getPlatformName())) {
+					predicates.add(
+							builder.equal(root.join("platform", JoinType.INNER).get("name"), param.getPlatformName()));
+				}
+				if (StrUtil.isNotBlank(param.getGatheringChannelCode())) {
+					predicates.add(builder.equal(root.get("gatheringChannelCode"), param.getGatheringChannelCode()));
+				}
+				if (StrUtil.isNotBlank(param.getOrderState())) {
+					predicates.add(builder.equal(root.get("orderState"), param.getOrderState()));
+				}
+				if (StrUtil.isNotBlank(param.getReceiverUserName())) {
+					predicates.add(builder.equal(root.join("userAccount", JoinType.INNER).get("userName"),
+							param.getReceiverUserName()));
+				}
+				if (param.getSubmitStartTime() != null) {
+					predicates.add(builder.greaterThanOrEqualTo(root.get("submitTime").as(Date.class),
+							DateUtil.beginOfDay(param.getSubmitStartTime())));
+				}
+				if (param.getSubmitEndTime() != null) {
+					predicates.add(builder.lessThanOrEqualTo(root.get("submitTime").as(Date.class),
+							DateUtil.endOfDay(param.getSubmitEndTime())));
+				}
+				return predicates.size() > 0 ? builder.and(predicates.toArray(new Predicate[predicates.size()])) : null;
+			}
+		};
+		Page<PlatformOrder> result = platformOrderRepo.findAll(spec,
+				PageRequest.of(param.getPageNum() - 1, param.getPageSize(), Sort.by(Sort.Order.desc("submitTime"))));
+		PageResult<PlatformOrderVO> pageResult = new PageResult<>(PlatformOrderVO.convertFor(result.getContent()),
+				param.getPageNum(), param.getPageSize(), result.getTotalElements());
+		return pageResult;
+	}
+
+	/**
+	 * 取消订单
+	 * 
+	 * @param id
+	 */
+	@Transactional
+	public void cancelOrder(@NotBlank String id) {
+		PlatformOrder platformOrder = platformOrderRepo.getOne(id);
+		if (!Constant.平台订单状态_等待接单.equals(platformOrder.getOrderState())) {
+			throw new BizException(BizError.只有等待接单状态的平台订单才能取消);
+		}
+		platformOrder.setOrderState(Constant.平台订单状态_人工取消);
+		platformOrder.setDealTime(new Date());
+		platformOrderRepo.save(platformOrder);
 	}
 
 }

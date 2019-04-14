@@ -13,6 +13,10 @@ public class Constant {
 	public static final String 平台订单状态_平台已确认支付 = "3";
 	
 	public static final String 平台订单状态_已支付 = "4";
+	
+	public static final String 平台订单状态_超时取消 = "5";
+
+	public static final String 平台订单状态_人工取消 = "6";
 
 	public static final String 账号类型_管理员 = "admin";
 
@@ -61,5 +65,7 @@ public class Constant {
 	public static final String 提现记录状态_已到账 = "4";
 	
 	public static final String 平台订单_已支付订单单号 = "PLATFORM_ORDER_PAID_ORDER_NO";
+	
+	public static final Integer 平台订单默认有效时长 = 10;
 
 }

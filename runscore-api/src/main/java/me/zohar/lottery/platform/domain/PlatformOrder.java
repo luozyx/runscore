@@ -3,17 +3,25 @@ package me.zohar.lottery.platform.domain;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import lombok.Getter;
 import lombok.Setter;
 import me.zohar.lottery.constants.Constant;
+import me.zohar.lottery.useraccount.domain.UserAccount;
 
 @Getter
 @Setter
@@ -49,11 +57,21 @@ public class PlatformOrder {
 	 * 提交时间
 	 */
 	private Date submitTime;
+	
+	/**
+	 * 有效时间
+	 */
+	private Date usefulTime;
 
 	/**
 	 * 订单状态
 	 */
 	private String orderState;
+	
+	/**
+	 * 备注
+	 */
+	private String note;
 
 	@Column(name = "platform_id", length = 32)
 	private String platformId;
@@ -61,6 +79,7 @@ public class PlatformOrder {
 	/**
 	 * 接单人账号id
 	 */
+	@Column(name = "received_account_id", length = 32)
 	private String receivedAccountId;
 
 	/**
@@ -72,6 +91,11 @@ public class PlatformOrder {
 	 * 平台确认时间
 	 */
 	private Date platformConfirmTime;
+	
+	/**
+	 * 处理时间
+	 */
+	private Date dealTime;
 
 	/**
 	 * 确认时间
@@ -84,19 +108,23 @@ public class PlatformOrder {
 	private Double bounty;
 	
 	/**
-	 * 奖励金结算时间
-	 */
-	private Date bountySettlementTime;
-
-	/**
 	 * 乐观锁版本号
 	 */
 	@Version
 	private Long version;
 	
+	@NotFound(action = NotFoundAction.IGNORE)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "platform_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+	private Platform platform;
+	
+	@NotFound(action = NotFoundAction.IGNORE)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "received_account_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+	private UserAccount userAccount;
+	
 	public void updateBounty(Double bounty) {
 		this.setBounty(bounty);
-		this.setBountySettlementTime(new Date());
 	}
 	
 	public void platformConfirmToPaid() {

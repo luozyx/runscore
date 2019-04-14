@@ -16,8 +16,4 @@ public interface PlatformOrderRepo
 	List<PlatformOrder> findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(List<String> orderStates,
 			String receivedAccountId);
 
-	PlatformOrder findByOrderNo(String orderNo);
-
-	List<PlatformOrder> findByOrderStateAndBountySettlementTimeIsNull(String orderState);
-
 }

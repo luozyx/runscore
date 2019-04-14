@@ -1,33 +1,19 @@
 var accountChangeLogVM = new Vue({
 	el : '#account-change-log',
 	data : {
-		accountChangeGameCode : '',
-		gameDictItems : [],
-		accountChangeStartTime : dayjs().format('YYYY-MM-DD'),
-		accountChangeEndTime : dayjs().format('YYYY-MM-DD'),
 		accountChangeTypeCode : '',
-		accountChangeTypeDictItems : []
+		accountChangeTypeDictItems : [],
+		accountChangeStartTime : dayjs().format('YYYY-MM-DD'),
+		accountChangeEndTime : dayjs().format('YYYY-MM-DD')
 	},
 	computed : {},
 	created : function() {
 	},
 	mounted : function() {
-		this.loadGameDictItem();
 		this.loadAccountChangeTypeDictItem();
 		this.initTable();
 	},
 	methods : {
-		loadGameDictItem : function() {
-			var that = this;
-			that.$http.get('/dictconfig/findDictItemInCache', {
-				params : {
-					dictTypeCode : 'game'
-				}
-			}).then(function(res) {
-				this.gameDictItems = res.body.data;
-			});
-		},
-
 		/**
 		 * 加载账变类型字典项
 		 */

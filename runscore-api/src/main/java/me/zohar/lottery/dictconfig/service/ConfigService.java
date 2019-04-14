@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import com.alicp.jetcache.anno.Cached;
 
@@ -29,6 +30,7 @@ import me.zohar.lottery.dictconfig.param.ConfigParam;
 import me.zohar.lottery.dictconfig.repo.ConfigItemRepo;
 import me.zohar.lottery.dictconfig.vo.ConfigItemVO;
 
+@Validated
 @Service
 public class ConfigService {
 
@@ -67,7 +69,6 @@ public class ConfigService {
 		return ConfigItemVO.convertFor(configItemRepo.findByConfigCode(configCode));
 	}
 
-	@ParamValid
 	@Transactional(readOnly = true)
 	public ConfigItemVO findConfigItemById(@NotBlank String id) {
 		return ConfigItemVO.convertFor(configItemRepo.getOne(id));
@@ -89,7 +90,6 @@ public class ConfigService {
 		}
 	}
 
-	@ParamValid
 	@Transactional
 	public void delConfigById(@NotBlank String id) {
 		configItemRepo.deleteById(id);

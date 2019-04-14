@@ -8,6 +8,8 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.BeanUtils;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateUtil;
 import lombok.Data;
 import me.zohar.lottery.common.utils.IdUtils;
 import me.zohar.lottery.constants.Constant;
@@ -32,7 +34,7 @@ public class StartOrderParam {
 	@DecimalMin(value = "0", inclusive = false)
 	private Double gatheringAmount;
 
-	public PlatformOrder convertToPo(String platformId) {
+	public PlatformOrder convertToPo(String platformId, Integer orderEffectiveDuration) {
 		PlatformOrder po = new PlatformOrder();
 		BeanUtils.copyProperties(this, po);
 		po.setId(IdUtils.getId());
@@ -40,6 +42,7 @@ public class StartOrderParam {
 		po.setSubmitTime(new Date());
 		po.setOrderState(Constant.平台订单状态_等待接单);
 		po.setPlatformId(platformId);
+		po.setUsefulTime(DateUtil.offset(po.getSubmitTime(), DateField.MINUTE, orderEffectiveDuration));
 		return po;
 	}
 
