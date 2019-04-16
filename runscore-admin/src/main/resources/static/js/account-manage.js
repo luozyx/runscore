@@ -92,11 +92,14 @@ var accountManageVM = new Vue({
 					field : 'accountTypeName',
 					title : '账号类型'
 				}, {
-					field : 'balance',
-					title : '余额'
+					field : 'cashDeposit',
+					title : '保证金'
 				}, {
 					field : 'stateName',
-					title : '状态'
+					title : '账号状态'
+				},{
+					field : 'receiveOrderStateName',
+					title : '接单状态'
 				}, {
 					field : 'inviterUserName',
 					title : '邀请人'

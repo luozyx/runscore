@@ -12,6 +12,7 @@ var masterControlRoomVM = new Vue({
 		platformOrderEffectiveDuration : '',
 		receiveOrderReturnWaterRate : '',
 		receiveOrderReturnWaterRateEnabled : false,
+		unfixedGatheringCodeReceiveOrder : false,
 		/**
 		 * 充值start
 		 */
@@ -86,6 +87,7 @@ var masterControlRoomVM = new Vue({
 					that.platformOrderEffectiveDuration = res.body.data.orderEffectiveDuration;
 					that.receiveOrderReturnWaterRate = res.body.data.returnWaterRate;
 					that.receiveOrderReturnWaterRateEnabled = res.body.data.returnWaterRateEnabled;
+					that.unfixedGatheringCodeReceiveOrder = res.body.data.unfixedGatheringCodeReceiveOrder;
 				}
 			});
 		},
@@ -119,11 +121,21 @@ var masterControlRoomVM = new Vue({
 				});
 				return;
 			}
+			var unfixedGatheringCodeReceiveOrder = that.unfixedGatheringCodeReceiveOrder;
+			if (unfixedGatheringCodeReceiveOrder == null) {
+				layer.alert('请选择是否支持不固定金额收款码接单', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
 
 			that.$http.post('/masterControl/updatePlatformOrderSetting', {
 				orderEffectiveDuration : platformOrderEffectiveDuration,
 				returnWaterRate : receiveOrderReturnWaterRate,
-				returnWaterRateEnabled : receiveOrderReturnWaterRateEnabled
+				returnWaterRateEnabled : receiveOrderReturnWaterRateEnabled,
+				unfixedGatheringCodeReceiveOrder : unfixedGatheringCodeReceiveOrder
 			}, {
 				emulateJSON : true
 			}).then(function(res) {

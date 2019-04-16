@@ -127,7 +127,7 @@ var platformVM = new Vue({
 
 		delPlatform : function(id) {
 			var that = this;
-			layer.confirm('确定要删除该账号吗?', {
+			layer.confirm('确定要删除吗?', {
 				icon : 7,
 				title : '提示'
 			}, function(index) {

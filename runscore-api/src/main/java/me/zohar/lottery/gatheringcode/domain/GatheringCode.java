@@ -3,15 +3,23 @@ package me.zohar.lottery.gatheringcode.domain;
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.zohar.lottery.useraccount.domain.UserAccount;
 
 @Getter
 @Setter
@@ -37,6 +45,8 @@ public class GatheringCode {
 	 * 状态,启用:1;禁用:0
 	 */
 	private String state;
+	
+	private Boolean fixedGatheringAmount;
 
 	/**
 	 * 收款金额
@@ -57,9 +67,14 @@ public class GatheringCode {
 	private String storageId;
 	
 	/**
-	 * 投注人用户账号id
+	 * 用户账号id
 	 */
 	@Column(name = "user_account_id", length = 32)
 	private String userAccountId;
+	
+	@NotFound(action = NotFoundAction.IGNORE)
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_account_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+	private UserAccount userAccount;
 
 }

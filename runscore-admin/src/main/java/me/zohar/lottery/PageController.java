@@ -120,6 +120,26 @@ public class PageController {
 	public String platform() {
 		return "platform";
 	}
+	
+	/**
+	 * 统计分析
+	 * 
+	 * @return
+	 */
+	@GetMapping("/statistical-analysis")
+	public String statisticalAnalysis() {
+		return "statistical-analysis";
+	}
+	
+	/**
+	 * 收款码
+	 * 
+	 * @return
+	 */
+	@GetMapping("/gathering-code")
+	public String gatheringCode() {
+		return "gathering-code";
+	}
 
 
 }

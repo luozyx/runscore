@@ -15,9 +15,14 @@ public class GatheringCodeQueryCondParam extends PageParam {
 	 */
 	private String gatheringChannelCode;
 	
+	private String payee;
+	
+	private String userName;
+	
 	/**
 	 * 用户账号id
 	 */
 	private String userAccountId;
+	
 
 }

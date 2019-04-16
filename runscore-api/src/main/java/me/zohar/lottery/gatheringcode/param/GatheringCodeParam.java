@@ -2,7 +2,6 @@ package me.zohar.lottery.gatheringcode.param;
 
 import java.util.Date;
 
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -19,6 +18,11 @@ public class GatheringCodeParam {
 	 * 主键id
 	 */
 	private String id;
+	
+	/**
+	 * 所属账号
+	 */
+	private String userName;
 
 	/**
 	 * 收款渠道
@@ -31,13 +35,16 @@ public class GatheringCodeParam {
 	 */
 	@NotBlank
 	private String state;
+	
+	@NotNull
+	private Boolean fixedGatheringAmount;
 
 	/**
 	 * 收款金额
 	 */
-	@NotNull
-	@DecimalMin(value = "0", inclusive = false)
 	private Double gatheringAmount;
+	
+	
 
 	/**
 	 * 收款人

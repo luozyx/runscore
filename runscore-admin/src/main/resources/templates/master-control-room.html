@@ -18,8 +18,7 @@
 
 .master-control-room-row .card-body {
 	height: 170px;
-	padding-left: 5.25rem;
-	padding-top: 2.25rem;
+	padding-left: 2.25rem;
 }
 
 .master-control-room-input {
@@ -68,6 +67,13 @@
 								<label>接单返水率</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="receiveOrderReturnWaterRate">%</span>
 								<div class="custom-control custom-switch custom-control-inline">
 									<input type="checkbox" class="custom-control-input" id="receiveOrderReturnWaterRateEnabled" v-model="receiveOrderReturnWaterRateEnabled"> <label class="custom-control-label" for="receiveOrderReturnWaterRateEnabled">{{receiveOrderReturnWaterRateEnabled ? '启用' : '关闭'}}</label>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="custom-control custom-switch custom-control-inline">
+									<input type="checkbox" class="custom-control-input" id="unfixedGatheringCodeReceiveOrder" v-model="unfixedGatheringCodeReceiveOrder"> <label class="custom-control-label" for="unfixedGatheringCodeReceiveOrder">支持不固定金额收款码接单</label>
 								</div>
 							</div>
 						</div>

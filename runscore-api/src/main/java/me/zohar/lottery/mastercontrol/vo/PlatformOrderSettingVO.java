@@ -29,6 +29,8 @@ public class PlatformOrderSettingVO {
 	 */
 	private Boolean returnWaterRateEnabled;
 
+	private Boolean unfixedGatheringCodeReceiveOrder;
+
 	/**
 	 * 最近修改时间
 	 */

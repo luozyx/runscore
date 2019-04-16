@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -30,6 +31,8 @@ import me.zohar.lottery.gatheringcode.repo.GatheringCodeRepo;
 import me.zohar.lottery.gatheringcode.vo.GatheringCodeVO;
 import me.zohar.lottery.storage.domain.Storage;
 import me.zohar.lottery.storage.repo.StorageRepo;
+import me.zohar.lottery.useraccount.domain.UserAccount;
+import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 
 @Validated
 @Service
@@ -40,6 +43,9 @@ public class GatheringCodeService {
 
 	@Autowired
 	private StorageRepo storageRepo;
+
+	@Autowired
+	private UserAccountRepo userAccountRepo;
 
 	@Transactional
 	public void delMyGatheringCodeById(String id, String userAccountId) {
@@ -57,12 +63,18 @@ public class GatheringCodeService {
 		gatheringCodeRepo.delete(gatheringCode);
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public GatheringCodeVO findMyGatheringCodeById(String id, String userAccountId) {
-		GatheringCode gatheringCode = gatheringCodeRepo.getOne(id);
-		if (!userAccountId.equals(gatheringCode.getUserAccountId())) {
+		GatheringCodeVO vo = findGatheringCodeById(id);
+		if (!userAccountId.equals(vo.getUserAccountId())) {
 			throw new BizException(BizError.无权查看数据);
 		}
+		return vo;
+	}
+
+	@Transactional(readOnly = true)
+	public GatheringCodeVO findGatheringCodeById(String id) {
+		GatheringCode gatheringCode = gatheringCodeRepo.getOne(id);
 		return GatheringCodeVO.convertFor(gatheringCode);
 	}
 
@@ -89,6 +101,13 @@ public class GatheringCodeService {
 				}
 				if (StrUtil.isNotEmpty(param.getGatheringChannelCode())) {
 					predicates.add(builder.equal(root.get("gatheringChannelCode"), param.getGatheringChannelCode()));
+				}
+				if (StrUtil.isNotEmpty(param.getPayee())) {
+					predicates.add(builder.equal(root.get("payee"), param.getPayee()));
+				}
+				if (StrUtil.isNotEmpty(param.getUserName())) {
+					predicates.add(builder.equal(root.join("userAccount", JoinType.INNER).get("userName"),
+							param.getUserName()));
 				}
 				if (StrUtil.isNotEmpty(param.getUserAccountId())) {
 					predicates.add(builder.equal(root.get("userAccountId"), param.getUserAccountId()));
@@ -119,9 +138,33 @@ public class GatheringCodeService {
 		storageRepo.save(oldStorage);
 	}
 
+	@Transactional
+	public void addOrUpdateGatheringCode(GatheringCodeParam param) {
+		String userAccountId = null;
+		if (StrUtil.isBlank(param.getId())) {
+			if (StrUtil.isBlank(param.getUserName())) {
+				throw new BizException(BizError.参数异常);
+			}
+			UserAccount userAccount = userAccountRepo.findByUserName(param.getUserName());
+			if (userAccount == null) {
+				throw new BizException(BizError.找不到所属账号无法新增收款码);
+			}
+			userAccountId = userAccount.getId();
+		}
+		addOrUpdateGatheringCode(param, userAccountId);
+	}
+
 	@ParamValid
 	@Transactional
 	public void addOrUpdateGatheringCode(GatheringCodeParam param, String userAccountId) {
+		if (param.getFixedGatheringAmount()) {
+			if (param.getGatheringAmount() == null) {
+				throw new BizException(BizError.参数异常);
+			}
+			if (param.getGatheringAmount() <= 0) {
+				throw new BizException(BizError.参数异常);
+			}
+		}
 		// 新增
 		if (StrUtil.isBlank(param.getId())) {
 			GatheringCode gatheringCode = param.convertToPo(userAccountId);

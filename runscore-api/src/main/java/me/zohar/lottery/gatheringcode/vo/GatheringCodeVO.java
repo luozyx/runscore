@@ -41,6 +41,8 @@ public class GatheringCodeVO implements Serializable {
 	private String state;
 
 	private String stateName;
+	
+	private Boolean fixedGatheringAmount;
 
 	/**
 	 * 收款金额
@@ -57,13 +59,15 @@ public class GatheringCodeVO implements Serializable {
 	 */
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date createTime;
-	
+
 	private String storageId;
 
 	/**
 	 * 投注人用户账号id
 	 */
 	private String userAccountId;
+
+	private String userName;
 
 	public static List<GatheringCodeVO> convertFor(Collection<GatheringCode> gatheringCodes) {
 		if (CollectionUtil.isEmpty(gatheringCodes)) {
@@ -84,6 +88,9 @@ public class GatheringCodeVO implements Serializable {
 		BeanUtils.copyProperties(gatheringCode, vo);
 		vo.setGatheringChannelName(DictHolder.getDictItemName("gatheringChannel", vo.getGatheringChannelCode()));
 		vo.setStateName(DictHolder.getDictItemName("gatheringCodeState", vo.getState()));
+		if (gatheringCode.getUserAccount() != null) {
+			vo.setUserName(gatheringCode.getUserAccount().getUserName());
+		}
 		return vo;
 	}
 

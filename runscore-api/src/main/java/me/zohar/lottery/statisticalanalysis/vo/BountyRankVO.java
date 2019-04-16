@@ -1,4 +1,4 @@
-package me.zohar.lottery.platform.vo;
+package me.zohar.lottery.statisticalanalysis.vo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,8 +8,8 @@ import org.springframework.beans.BeanUtils;
 
 import cn.hutool.core.collection.CollectionUtil;
 import lombok.Data;
-import me.zohar.lottery.platform.domain.ReceiveOrderSituation;
-import me.zohar.lottery.platform.domain.TodayReceiveOrderSituation;
+import me.zohar.lottery.statisticalanalysis.domain.TotalAccountReceiveOrderSituation;
+import me.zohar.lottery.statisticalanalysis.domain.TodayAccountReceiveOrderSituation;
 
 @Data
 public class BountyRankVO implements Serializable {
@@ -25,18 +25,18 @@ public class BountyRankVO implements Serializable {
 
 	private Double totalBounty;
 
-	public static List<BountyRankVO> convertForToday(List<TodayReceiveOrderSituation> situations) {
+	public static List<BountyRankVO> convertForToday(List<TodayAccountReceiveOrderSituation> situations) {
 		if (CollectionUtil.isEmpty(situations)) {
 			return new ArrayList<>();
 		}
 		List<BountyRankVO> vos = new ArrayList<>();
-		for (TodayReceiveOrderSituation situation : situations) {
+		for (TodayAccountReceiveOrderSituation situation : situations) {
 			vos.add(convertForToday(situation));
 		}
 		return vos;
 	}
 
-	public static BountyRankVO convertForToday(TodayReceiveOrderSituation situation) {
+	public static BountyRankVO convertForToday(TodayAccountReceiveOrderSituation situation) {
 		if (situation == null) {
 			return null;
 		}
@@ -46,18 +46,18 @@ public class BountyRankVO implements Serializable {
 		return vo;
 	}
 
-	public static List<BountyRankVO> convertFor(List<ReceiveOrderSituation> situations) {
+	public static List<BountyRankVO> convertFor(List<TotalAccountReceiveOrderSituation> situations) {
 		if (CollectionUtil.isEmpty(situations)) {
 			return new ArrayList<>();
 		}
 		List<BountyRankVO> vos = new ArrayList<>();
-		for (ReceiveOrderSituation situation : situations) {
+		for (TotalAccountReceiveOrderSituation situation : situations) {
 			vos.add(convertFor(situation));
 		}
 		return vos;
 	}
 
-	public static BountyRankVO convertFor(ReceiveOrderSituation situation) {
+	public static BountyRankVO convertFor(TotalAccountReceiveOrderSituation situation) {
 		if (situation == null) {
 			return null;
 		}

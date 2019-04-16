@@ -48,7 +48,7 @@ public class UserAccountDetailsInfoVO {
 	/**
 	 * 余额
 	 */
-	private Double balance;
+	private Double cashDeposit;
 
 	/**
 	 * 状态
@@ -91,6 +91,13 @@ public class UserAccountDetailsInfoVO {
 	private Date bankInfoLatelyModifyTime;
 
 	/**
+	 * 接单状态
+	 */
+	private String receiveOrderState;
+
+	private String receiveOrderStateName;
+
+	/**
 	 * 邀请人
 	 */
 	private String inviterUserName;
@@ -114,6 +121,7 @@ public class UserAccountDetailsInfoVO {
 		BeanUtils.copyProperties(userAccount, vo);
 		vo.setAccountTypeName(DictHolder.getDictItemName("accountType", vo.getAccountType()));
 		vo.setStateName(DictHolder.getDictItemName("accountState", vo.getState()));
+		vo.setReceiveOrderStateName(DictHolder.getDictItemName("receiveOrderState", vo.getReceiveOrderState()));
 		if (userAccount.getInviter() != null) {
 			vo.setInviterUserName(userAccount.getInviter().getUserName());
 		}

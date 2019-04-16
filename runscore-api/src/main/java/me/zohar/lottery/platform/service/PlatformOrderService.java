@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import com.alicp.jetcache.anno.Cached;
 import com.zengtengpeng.annotation.Lock;
 
 import cn.hutool.core.date.DateUtil;
@@ -40,16 +39,11 @@ import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
 import me.zohar.lottery.mastercontrol.repo.PlatformOrderSettingRepo;
 import me.zohar.lottery.platform.domain.Platform;
 import me.zohar.lottery.platform.domain.PlatformOrder;
-import me.zohar.lottery.platform.domain.ReceiveOrderSituation;
-import me.zohar.lottery.platform.domain.TodayReceiveOrderSituation;
 import me.zohar.lottery.platform.param.MyReceiveOrderRecordQueryCondParam;
 import me.zohar.lottery.platform.param.PlatformOrderQueryCondParam;
 import me.zohar.lottery.platform.param.StartOrderParam;
 import me.zohar.lottery.platform.repo.PlatformOrderRepo;
 import me.zohar.lottery.platform.repo.PlatformRepo;
-import me.zohar.lottery.platform.repo.ReceiveOrderSituationRepo;
-import me.zohar.lottery.platform.repo.TodayReceiveOrderSituationRepo;
-import me.zohar.lottery.platform.vo.BountyRankVO;
 import me.zohar.lottery.platform.vo.MyReceiveOrderRecordVO;
 import me.zohar.lottery.platform.vo.MyWaitConfirmOrderVO;
 import me.zohar.lottery.platform.vo.MyWaitReceivingOrderVO;
@@ -79,12 +73,6 @@ public class PlatformOrderService {
 
 	@Autowired
 	private AccountChangeLogRepo accountChangeLogRepo;
-
-	@Autowired
-	private TodayReceiveOrderSituationRepo todayReceiveOrderSituationRepo;
-
-	@Autowired
-	private ReceiveOrderSituationRepo receiveOrderSituationRepo;
 
 	@Autowired
 	private PlatformOrderSettingRepo platformOrderSettingRepo;
@@ -299,22 +287,6 @@ public class PlatformOrderService {
 				MyReceiveOrderRecordVO.convertFor(result.getContent()), param.getPageNum(), param.getPageSize(),
 				result.getTotalElements());
 		return pageResult;
-	}
-
-	@Cached(name = "todayTop10BountyRank", expire = 300)
-	@Transactional(readOnly = true)
-	public List<BountyRankVO> findTodayTop10BountyRank() {
-		List<TodayReceiveOrderSituation> todayReceiveOrderSituations = todayReceiveOrderSituationRepo
-				.findTop10ByOrderByTotalBountyDesc();
-		return BountyRankVO.convertForToday(todayReceiveOrderSituations);
-	}
-
-	@Cached(name = "top10BountyRank", expire = 300)
-	@Transactional(readOnly = true)
-	public List<BountyRankVO> findTop10BountyRank() {
-		List<ReceiveOrderSituation> receiveOrderSituations = receiveOrderSituationRepo
-				.findTop10ByOrderByTotalBountyDesc();
-		return BountyRankVO.convertFor(receiveOrderSituations);
 	}
 
 	@Transactional(readOnly = true)

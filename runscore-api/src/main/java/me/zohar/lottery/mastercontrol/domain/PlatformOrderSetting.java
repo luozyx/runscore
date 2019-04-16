@@ -48,16 +48,19 @@ public class PlatformOrderSetting {
 	 */
 	private Boolean returnWaterRateEnabled;
 
+	private Boolean unfixedGatheringCodeReceiveOrder;
+
 	/**
 	 * 最近修改时间
 	 */
 	private Date latelyUpdateTime;
 
-	public void update(Integer orderEffectiveDuration, Double returnWaterRate,
-			Boolean returnWaterRateEnabled) {
+	public void update(Integer orderEffectiveDuration, Double returnWaterRate, Boolean returnWaterRateEnabled,
+			Boolean unfixedGatheringCodeReceiveOrder) {
 		this.setOrderEffectiveDuration(orderEffectiveDuration);
 		this.setReturnWaterRate(returnWaterRate);
 		this.setReturnWaterRateEnabled(returnWaterRateEnabled);
+		this.setUnfixedGatheringCodeReceiveOrder(unfixedGatheringCodeReceiveOrder);
 		this.setLatelyUpdateTime(new Date());
 	}
 

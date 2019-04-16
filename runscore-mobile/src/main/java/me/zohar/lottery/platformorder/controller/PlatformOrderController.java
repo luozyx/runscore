@@ -61,17 +61,5 @@ public class PlatformOrderController {
 		param.setUserAccountId(user.getUserAccountId());
 		return Result.success().setData(platformOrderService.findMyReceiveOrderRecordByPage(param));
 	}
-	
-	@GetMapping("/findTodayTop10BountyRank")
-	@ResponseBody
-	public Result findTodayTop10BountyRank() {
-		return Result.success().setData(platformOrderService.findTodayTop10BountyRank());
-	}
-	
-	@GetMapping("/findTop10BountyRank")
-	@ResponseBody
-	public Result findTop10BountyRank() {
-		return Result.success().setData(platformOrderService.findTop10BountyRank());
-	}
 
 }

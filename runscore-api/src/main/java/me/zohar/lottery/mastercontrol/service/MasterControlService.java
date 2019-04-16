@@ -1,6 +1,7 @@
 package me.zohar.lottery.mastercontrol.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -15,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import lombok.extern.slf4j.Slf4j;
+import me.zohar.lottery.common.valid.ParamValid;
 import me.zohar.lottery.mastercontrol.domain.InviteRegisterSetting;
 import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
 import me.zohar.lottery.mastercontrol.domain.RechargeSetting;
+import me.zohar.lottery.mastercontrol.param.UpdatePlatformOrderSettingParam;
 import me.zohar.lottery.mastercontrol.repo.InviteRegisterSettingRepo;
 import me.zohar.lottery.mastercontrol.repo.PlatformOrderSettingRepo;
 import me.zohar.lottery.mastercontrol.repo.RechargeSettingRepo;
@@ -65,16 +69,16 @@ public class MasterControlService {
 		return PlatformOrderSettingVO.convertFor(setting);
 	}
 
+	@ParamValid
 	@Transactional
 	public void updatePlatformOrderSetting(
-			@NotNull @DecimalMin(value = "0", inclusive = true) Integer orderEffectiveDuration,
-			@NotNull @DecimalMin(value = "0", inclusive = true) Double returnWaterRate,
-			@NotNull Boolean returnWaterRateEnabled) {
+			UpdatePlatformOrderSettingParam param) {
 		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
 		if (setting == null) {
 			setting = PlatformOrderSetting.build();
 		}
-		setting.update(orderEffectiveDuration, returnWaterRate, returnWaterRateEnabled);
+		BeanUtils.copyProperties(param, setting);
+		setting.setLatelyUpdateTime(new Date());
 		platformOrderSettingRepo.save(setting);
 	}
 

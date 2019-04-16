@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import me.zohar.lottery.common.vo.Result;
+import me.zohar.lottery.mastercontrol.param.UpdatePlatformOrderSettingParam;
 import me.zohar.lottery.mastercontrol.service.MasterControlService;
 
 /**
@@ -48,9 +49,8 @@ public class MasterControlController {
 
 	@PostMapping("/updatePlatformOrderSetting")
 	@ResponseBody
-	public Result updatePlatformOrderSetting(Integer orderEffectiveDuration, Double returnWaterRate,
-			Boolean returnWaterRateEnabled) {
-		service.updatePlatformOrderSetting(orderEffectiveDuration, returnWaterRate, returnWaterRateEnabled);
+	public Result updatePlatformOrderSetting(UpdatePlatformOrderSettingParam param) {
+		service.updatePlatformOrderSetting(param);
 		return Result.success();
 	}
 

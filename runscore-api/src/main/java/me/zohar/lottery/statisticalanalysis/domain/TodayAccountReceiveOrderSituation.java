@@ -1,4 +1,4 @@
-package me.zohar.lottery.platform.domain;
+package me.zohar.lottery.statisticalanalysis.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,10 +14,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "v_today_receive_order_situation")
+@Table(name = "v_today_account_receive_order_situation")
 @DynamicInsert(true)
 @DynamicUpdate(true)
-public class TodayReceiveOrderSituation {
+public class TodayAccountReceiveOrderSituation {
 
 	@Id
 	@Column(name = "received_account_id", length = 32)

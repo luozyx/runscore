@@ -132,7 +132,7 @@ public class AccountChangeLog {
 		log.setAccountChangeTime(new Date());
 		log.setAccountChangeTypeCode(Constant.账变日志类型_接单奖励金);
 		log.setAccountChangeAmount(NumberUtil.round(returnWater, 4).doubleValue());
-		log.setNote(MessageFormat.format("接单返水率:{0}%", 5));
+		log.setNote(MessageFormat.format("接单返水率:{0}%", returnWaterRate));
 		log.setCashDeposit(userAccount.getCashDeposit());
 		log.setUserAccountId(userAccount.getId());
 		return log;
