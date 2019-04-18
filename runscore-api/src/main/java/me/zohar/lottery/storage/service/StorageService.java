@@ -15,6 +15,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
+import me.zohar.lottery.common.exception.BizError;
+import me.zohar.lottery.common.exception.BizException;
 import me.zohar.lottery.common.utils.IdUtils;
 import me.zohar.lottery.storage.domain.Storage;
 import me.zohar.lottery.storage.repo.StorageRepo;
@@ -48,7 +50,10 @@ public class StorageService {
 		}
 	}
 
-	public String store(InputStream inputStream, Long fileSize, String fileType, String fileName) {
+	public String uploadGatheringCode(InputStream inputStream, Long fileSize, String fileType, String fileName) {
+		if (!fileType.startsWith("image/")) {
+			throw new BizException(BizError.只能上传图片类型的收款码);
+		}
 		String id = IdUtils.getId();
 		try {
 			Files.copy(inputStream, Paths.get(storagePath).resolve(id), StandardCopyOption.REPLACE_EXISTING);

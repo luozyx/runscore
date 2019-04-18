@@ -123,12 +123,19 @@ var gatheringCodeVM = new Vue({
 			});
 		},
 
+		switchGatheringAmountMode : function() {
+			if (!this.editGatheringCode.fixedGatheringAmount) {
+				this.editGatheringCode.gatheringAmount = '';
+			}
+		},
+
 		showEditGatheringCodePage : function(gatheringCodeId) {
 			var that = this;
 			if (gatheringCodeId == null || gatheringCodeId == '') {
 				that.editGatheringCode = {
 					gatheringChannelCode : '',
 					state : '',
+					fixedGatheringAmount : true,
 					gatheringAmount : '',
 					payee : ''
 				};
@@ -180,13 +187,23 @@ var gatheringCodeVM = new Vue({
 				});
 				return;
 			}
-			if (editGatheringCode.gatheringAmount == null || editGatheringCode.gatheringAmount == '') {
-				layer.alert('请输入收款金额', {
+			if (editGatheringCode.fixedGatheringAmount == null) {
+				layer.alert('请选择是否固定收款金额', {
 					title : '提示',
 					icon : 7,
 					time : 3000
 				});
 				return;
+			}
+			if (editGatheringCode.fixedGatheringAmount) {
+				if (editGatheringCode.gatheringAmount == null || editGatheringCode.gatheringAmount == '') {
+					layer.alert('请输入收款金额', {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+					return;
+				}
 			}
 			if (editGatheringCode.payee == null || editGatheringCode.payee == '') {
 				layer.alert('请选择收款人', {

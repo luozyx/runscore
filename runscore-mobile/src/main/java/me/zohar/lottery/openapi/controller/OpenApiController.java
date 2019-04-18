@@ -8,17 +8,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import me.zohar.lottery.common.vo.Result;
-import me.zohar.lottery.platform.param.StartOrderParam;
-import me.zohar.lottery.platform.service.PlatformOrderService;
-import me.zohar.lottery.platform.vo.OrderGatheringCodeVO;
-import me.zohar.lottery.platform.vo.PlatformOrderVO;
+import me.zohar.lottery.merchant.param.StartOrderParam;
+import me.zohar.lottery.merchant.service.MerchantOrderService;
+import me.zohar.lottery.merchant.vo.OrderGatheringCodeVO;
+import me.zohar.lottery.merchant.vo.PlatformOrderVO;
 
 @Controller
 @RequestMapping("/openApi")
 public class OpenApiController {
 
 	@Autowired
-	private PlatformOrderService platformOrderService;
+	private MerchantOrderService platformOrderService;
 
 	@PostMapping("/startOrder")
 	@ResponseBody

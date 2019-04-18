@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.zohar.lottery.common.utils.IdUtils;
 import me.zohar.lottery.constants.Constant;
-import me.zohar.lottery.platform.domain.PlatformOrder;
+import me.zohar.lottery.merchant.domain.MerchantOrder;
 import me.zohar.lottery.rechargewithdraw.domain.RechargeOrder;
 import me.zohar.lottery.rechargewithdraw.domain.WithdrawRecord;
 
@@ -167,7 +167,7 @@ public class AccountChangeLog {
 	 * @param platformOrder
 	 * @return
 	 */
-	public static AccountChangeLog buildWithConfirmToPaid(UserAccount userAccount, PlatformOrder platformOrder) {
+	public static AccountChangeLog buildWithConfirmToPaid(UserAccount userAccount, MerchantOrder platformOrder) {
 		AccountChangeLog log = new AccountChangeLog();
 		log.setId(IdUtils.getId());
 		log.setOrderNo(platformOrder.getOrderNo());

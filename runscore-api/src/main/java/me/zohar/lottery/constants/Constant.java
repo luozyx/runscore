@@ -17,6 +17,10 @@ public class Constant {
 	public static final String 平台订单状态_超时取消 = "5";
 
 	public static final String 平台订单状态_人工取消 = "6";
+	
+	public static final String 平台订单状态_申请取消订单 = "7";
+	
+	public static final String 平台订单状态_未支付取消订单 = "8";
 
 	public static final String 账号类型_管理员 = "admin";
 

@@ -112,13 +112,13 @@ public class PageController {
 	}
 	
 	/**
-	 * 接入平台
+	 * 接入商家
 	 * 
 	 * @return
 	 */
-	@GetMapping("/platform")
-	public String platform() {
-		return "platform";
+	@GetMapping("/merchant")
+	public String merchant() {
+		return "merchant";
 	}
 	
 	/**

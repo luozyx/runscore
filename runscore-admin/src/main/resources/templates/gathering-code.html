@@ -32,27 +32,27 @@
 	<div id="gathering-code" v-cloak>
 		<form class="form-inline common-query-cond-form" action="#">
 			<div class="form-group common-query-cond">
-				<label>收款渠道:</label> <select class="form-control" v-model="gatheringChannelCode">
+				<label>收款渠道:</label> <select class="form-control-sm" v-model="gatheringChannelCode">
 					<option value="">请选择</option>
 					<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
 				</select>
 			</div>
 			<div class="form-group common-query-cond">
-				<label>收款码状态:</label> <select class="form-control" v-model="state">
+				<label>收款码状态:</label> <select class="form-control-sm" v-model="state">
 					<option value="">全部</option>
 					<option v-for="dictItem in gatheringCodeStateDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
 				</select>
 			</div>
 			<div class="form-group common-query-cond">
-				<label>收款人:</label><input type="text" class="form-control" v-model="payee">
+				<label>收款人:</label><input type="text" class="form-control-sm" v-model="payee">
 			</div>
 			<div class="form-group common-query-cond">
-				<label>所属账号:</label><input type="text" class="form-control" v-model="userName">
+				<label>所属账号:</label><input type="text" class="form-control-sm" v-model="userName">
 			</div>
-			<button type="button" class="btn btn-danger" v-on:click="refreshTable">搜索</button>
+			<button type="button" class="btn btn-danger btn-sm" v-on:click="refreshTable">搜索</button>
 		</form>
 		<form class="form-inline common-query-cond-form float-right" action="#">
-			<button type="button" class="btn btn-info " v-on:click="openAddGatheringCodeModal">新增收款码</button>
+			<button type="button" class="btn btn-info btn-sm" v-on:click="openAddGatheringCodeModal">新增收款码</button>
 		</form>
 		<table class="common-table gathering-code-table"></table>
 

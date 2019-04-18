@@ -1,6 +1,7 @@
 package me.zohar.lottery.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,11 +31,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 		LoginAccountInfoVO loginAccountInfo = userAccountService.getLoginAccountInfo(username);
 		if (loginAccountInfo == null) {
 			log.warn("账号不存在:{}", username);
-			throw new UsernameNotFoundException("用户名或密码不正确");
+			throw new AuthenticationServiceException("用户名或密码不正确");
 		}
 		if (!Constant.账号类型_管理员.equals(loginAccountInfo.getAccountType())) {
 			log.warn("该账号不是管理员,无法登陆到后台:{}", username);
-			throw new UsernameNotFoundException("该账号不是管理员,无法登陆到后台");
+			throw new AuthenticationServiceException("该账号不是管理员,无法登陆到后台");
 		}
 
 		return new UserAccountDetails(loginAccountInfo);

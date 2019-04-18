@@ -19,12 +19,13 @@
 }
 
 .platform-order {
-	height: 8.5rem;
 	background: rgb(242, 242, 242);
 	margin-bottom: 1rem;
 	display: flex;
 	padding-left: 1.2rem;
 	padding-right: 0.2rem;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
 }
 
 .platform-order-body {
@@ -70,7 +71,7 @@
 						</div>
 						<div class="platform-order-body-item">
 							<button class="btn btn-outline-info btn-lg" type="button" v-on:click="confirmToPaid(order.id)">确认已支付</button>
-							<button class="btn btn-outline-danger btn-lg" type="button" v-on:click="">取消</button>
+							<button class="btn btn-outline-danger btn-lg" type="button" v-on:click="applyCancelOrder(order.id)">申请取消订单</button>
 						</div>
 					</div>
 				</div>
@@ -101,7 +102,23 @@
 
 				confirmToPaid : function(orderId) {
 					var that = this;
-					that.$http.get('/platformOrder/confirmToPaid', {
+					that.$http.get('/platformOrder/userConfirmToPaid', {
+						params : {
+							orderId : orderId
+						}
+					}).then(function(res) {
+						layer.alert('操作成功', {
+							icon : 1,
+							time : 2000,
+							shade : false
+						});
+						that.loadPlatformOrder();
+					}); 
+				},
+
+				applyCancelOrder : function(orderId) {
+					var that = this;
+					that.$http.get('/platformOrder/applyCancelOrder', {
 						params : {
 							orderId : orderId
 						}
@@ -113,7 +130,6 @@
 						});
 						that.loadPlatformOrder();
 					});
-
 				},
 			}
 		});

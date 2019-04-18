@@ -9,7 +9,11 @@ var platformOrderVM = new Vue({
 		platformOrderStateDictItems : [],
 		receiverUserName : '',
 		submitStartTime : dayjs().format('YYYY-MM-DD'),
-		submitEndTime : dayjs().format('YYYY-MM-DD')
+		submitEndTime : dayjs().format('YYYY-MM-DD'),
+
+		auditPlatformOrderFlag : false,
+		auditPlatformOrder : '',
+		auditNote : '',
 	},
 	computed : {},
 	created : function() {
@@ -125,11 +129,16 @@ var platformOrderVM = new Vue({
 					formatter : function(value, row, index) {
 						if (row.orderState == '1') {
 							return [ '<button type="button" class="cancel-order-btn btn btn-outline-danger btn-sm">取消订单</button>' ].join('');
+						} else if (row.orderState == '7') {
+							return [ '<button type="button" class="audit-order-btn btn btn-outline-danger btn-sm">审核订单</button>' ].join('');
 						}
 					},
 					events : {
 						'click .cancel-order-btn' : function(event, value, row, index) {
 							that.cancelOrder(row.id);
+						},
+						'click .audit-order-btn' : function(event, value, row, index) {
+							that.showAuditOrderModal(row);
 						}
 					}
 				} ]
@@ -162,6 +171,35 @@ var platformOrderVM = new Vue({
 					that.refreshTable();
 				});
 			});
+		},
+
+		showAuditOrderModal : function(platformOrder) {
+			this.auditPlatformOrderFlag = true;
+			this.auditPlatformOrder = platformOrder;
+			this.auditNote = '';
+		},
+
+		audit : function(action) {
+			var that = this;
+			var url = '/platformOrder/customerServiceConfirmToPaid';
+			if (action == 2) {
+				url = '/platformOrder/unpaidCancelOrder';
+			}
+			that.$http.get(url, {
+				params : {
+					id : that.auditPlatformOrder.id,
+					note : that.auditNote
+				}
+			}).then(function(res) {
+				layer.alert('操作成功!', {
+					icon : 1,
+					time : 3000,
+					shade : false
+				});
+				this.auditPlatformOrderFlag = false;
+				that.refreshTable();
+			});
 		}
+
 	}
 });

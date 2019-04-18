@@ -3,6 +3,7 @@ var accountChangeLogVM = new Vue({
 	data : {
 		accountChangeTypeCode : '',
 		accountChangeTypeDictItems : [],
+		userName : '',
 		accountChangeStartTime : dayjs().format('YYYY-MM-DD'),
 		accountChangeEndTime : dayjs().format('YYYY-MM-DD')
 	},
@@ -44,10 +45,10 @@ var accountChangeLogVM = new Vue({
 					var condParam = {
 						pageSize : params.pageSize,
 						pageNum : params.pageNumber,
-						gameCode : that.accountChangeGameCode,
+						accountChangeTypeCode : that.accountChangeTypeCode,
+						userName : that.userName,
 						startTime : that.accountChangeStartTime,
-						endTime : that.accountChangeEndTime,
-						accountChangeTypeCode : that.accountChangeTypeCode
+						endTime : that.accountChangeEndTime
 					};
 					return condParam;
 				},
@@ -58,17 +59,17 @@ var accountChangeLogVM = new Vue({
 					};
 				},
 				columns : [ {
+					field : 'accountChangeTypeName',
+					title : '帐变类型'
+				}, {
 					field : 'userName',
-					title : '用户名'
+					title : '帐变用户'
 				}, {
 					field : 'orderNo',
 					title : '订单号'
 				}, {
 					field : 'accountChangeTime',
 					title : '账变时间'
-				}, {
-					field : 'accountChangeTypeName',
-					title : '帐变类型'
 				}, {
 					field : 'note',
 					title : '备注'

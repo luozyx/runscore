@@ -42,11 +42,11 @@ public class StorageController {
 		return ResponseEntity.ok().contentType(mediaType).body(file);
 	}
 
-	@PostMapping("/upload")
+	@PostMapping("/uploadGatheringCode")
 	@ResponseBody
-	public Result upload(@RequestParam("file_data") MultipartFile file) throws IOException {
+	public Result uploadGatheringCode(@RequestParam("file_data") MultipartFile file) throws IOException {
 		String filename = file.getOriginalFilename();
-		String storageId = storageService.store(file.getInputStream(), file.getSize(), file.getContentType(), filename);
+		String storageId = storageService.uploadGatheringCode(file.getInputStream(), file.getSize(), file.getContentType(), filename);
 		return Result.success().setData(storageId);
 	}
 
