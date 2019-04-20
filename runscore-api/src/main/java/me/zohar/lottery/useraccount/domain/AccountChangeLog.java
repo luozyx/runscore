@@ -67,12 +67,12 @@ public class AccountChangeLog {
 	 * 账变金额
 	 */
 	private Double accountChangeAmount;
-	
+
 	/**
 	 * 保证金
 	 */
 	private Double cashDeposit;
-	
+
 	/**
 	 * 备注
 	 */
@@ -115,7 +115,7 @@ public class AccountChangeLog {
 		log.setUserAccountId(userAccount.getId());
 		return log;
 	}
-	
+
 	/**
 	 * 构建接单奖励金账变日志
 	 * 
@@ -161,18 +161,19 @@ public class AccountChangeLog {
 	}
 
 	/**
-	 * 构建确认已支付日志
+	 * 构建接单扣款日志
 	 * 
 	 * @param userAccount
 	 * @param platformOrder
 	 * @return
 	 */
-	public static AccountChangeLog buildWithConfirmToPaid(UserAccount userAccount, MerchantOrder platformOrder) {
+	public static AccountChangeLog buildWithReceiveOrderDeduction(UserAccount userAccount,
+			MerchantOrder platformOrder) {
 		AccountChangeLog log = new AccountChangeLog();
 		log.setId(IdUtils.getId());
 		log.setOrderNo(platformOrder.getOrderNo());
-		log.setAccountChangeTime(platformOrder.getConfirmTime());
-		log.setAccountChangeTypeCode(Constant.账变日志类型_确认支付扣款);
+		log.setAccountChangeTime(platformOrder.getReceivedTime());
+		log.setAccountChangeTypeCode(Constant.账变日志类型_接单扣款);
 		log.setAccountChangeAmount(-platformOrder.getGatheringAmount());
 		log.setCashDeposit(userAccount.getCashDeposit());
 		log.setUserAccountId(userAccount.getId());
@@ -193,6 +194,25 @@ public class AccountChangeLog {
 		log.setAccountChangeTime(withdrawRecord.getSubmitTime());
 		log.setAccountChangeTypeCode(Constant.账变日志类型_账号提现);
 		log.setAccountChangeAmount(NumberUtil.round(withdrawRecord.getWithdrawAmount(), 4).doubleValue());
+		log.setCashDeposit(userAccount.getCashDeposit());
+		log.setUserAccountId(userAccount.getId());
+		return log;
+	}
+
+	/**
+	 * 构建退还保证金账变日志
+	 * 
+	 * @param userAccount
+	 * @param withdrawRecord
+	 * @return
+	 */
+	public static AccountChangeLog buildWithRefundCashDeposit(UserAccount userAccount, MerchantOrder merchantOrder) {
+		AccountChangeLog log = new AccountChangeLog();
+		log.setId(IdUtils.getId());
+		log.setOrderNo(merchantOrder.getOrderNo());
+		log.setAccountChangeTime(merchantOrder.getDealTime());
+		log.setAccountChangeTypeCode(Constant.账变日志类型_退还保证金);
+		log.setAccountChangeAmount(NumberUtil.round(merchantOrder.getGatheringAmount(), 4).doubleValue());
 		log.setCashDeposit(userAccount.getCashDeposit());
 		log.setUserAccountId(userAccount.getId());
 		return log;

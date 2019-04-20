@@ -6,21 +6,21 @@ public class Constant {
 	
 	public static final String 接单状态_停止接单 = "2";
 	
-	public static final String 平台订单状态_等待接单 = "1";
+	public static final String 商户订单状态_等待接单 = "1";
 	
-	public static final String 平台订单状态_已接单 = "2";
+	public static final String 商户订单状态_已接单 = "2";
 	
-	public static final String 平台订单状态_平台已确认支付 = "3";
+	public static final String 商户订单状态_商户已确认支付 = "3";
 	
-	public static final String 平台订单状态_已支付 = "4";
+	public static final String 商户订单状态_已支付 = "4";
 	
-	public static final String 平台订单状态_超时取消 = "5";
+	public static final String 商户订单状态_超时取消 = "5";
 
-	public static final String 平台订单状态_人工取消 = "6";
+	public static final String 商户订单状态_人工取消 = "6";
 	
-	public static final String 平台订单状态_申请取消订单 = "7";
+	public static final String 商户订单状态_申请取消订单 = "7";
 	
-	public static final String 平台订单状态_未支付取消订单 = "8";
+	public static final String 商户订单状态_未支付取消订单 = "8";
 
 	public static final String 账号类型_管理员 = "admin";
 
@@ -50,11 +50,13 @@ public class Constant {
 
 	public static final String 账变日志类型_充值优惠 = "2";
 
-	public static final String 账变日志类型_确认支付扣款 = "3";
+	public static final String 账变日志类型_接单扣款 = "3";
 
 	public static final String 账变日志类型_接单奖励金 = "4";
 
 	public static final String 账变日志类型_账号提现 = "5";
+	
+	public static final String 账变日志类型_退还保证金 = "6";
 
 	public static final String 充提日志订单类型_充值 = "1";
 

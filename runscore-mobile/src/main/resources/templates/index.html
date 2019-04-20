@@ -73,7 +73,7 @@
 			</nav>
 			<div class="card" v-show="showTodayBountyRankFlag">
 				<div class="card-header">
-					<span>当日奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTop10BountyRank">累计排行榜&gt;</span>
+					<span>当日奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTotalTop10BountyRank">累计排行榜&gt;</span>
 				</div>
 				<div class="card-body">
 					<table class="table table-sm bounty-ranking-table">
@@ -108,7 +108,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="(bountyRank,index) in bountyRanks">
+							<tr v-for="(bountyRank,index) in totalBountyRanks">
 								<td><span class="badge" v-bind:class="[index > 2 ? 'badge-success' : 'badge-danger']">{{index + 1}}</span></td>
 								<td>{{bountyRank.userName}}</td>
 								<td>￥{{bountyRank.totalBounty}}</td>
@@ -127,7 +127,7 @@
 				isLoggedInFlag : true,
 				showTodayBountyRankFlag : true,
 				todayBountyRanks : [],
-				bountyRanks : []
+				totalBountyRanks : []
 			},
 			computed : {},
 			created : function() {
@@ -141,15 +141,15 @@
 
 				loadTodayTop10BountyRank : function() {
 					var that = this;
-					that.$http.get('/platformOrder/findTodayTop10BountyRank').then(function(res) {
+					that.$http.get('/statisticalAnalysis/findTodayTop10BountyRank').then(function(res) {
 						that.todayBountyRanks = res.body.data;
 					});
 				},
 
-				loadTop10BountyRank : function() {
+				loadTotalTop10BountyRank : function() {
 					var that = this;
-					that.$http.get('/platformOrder/findTop10BountyRank').then(function(res) {
-						that.bountyRanks = res.body.data;
+					that.$http.get('/statisticalAnalysis/findTotalTop10BountyRank').then(function(res) {
+						that.totalBountyRanks = res.body.data;
 					});
 				},
 				
@@ -158,9 +158,9 @@
 					this.loadTodayTop10BountyRank();
 				},
 
-				showTop10BountyRank : function() {
+				showTotalTop10BountyRank : function() {
 					this.showTodayBountyRankFlag = false;
-					this.loadTop10BountyRank();
+					this.loadTotalTop10BountyRank();
 				},
 
 				/**

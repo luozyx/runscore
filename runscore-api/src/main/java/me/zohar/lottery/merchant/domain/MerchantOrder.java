@@ -57,7 +57,7 @@ public class MerchantOrder {
 	 * 提交时间
 	 */
 	private Date submitTime;
-	
+
 	/**
 	 * 有效时间
 	 */
@@ -67,7 +67,7 @@ public class MerchantOrder {
 	 * 订单状态
 	 */
 	private String orderState;
-	
+
 	/**
 	 * 备注
 	 */
@@ -88,10 +88,10 @@ public class MerchantOrder {
 	private Date receivedTime;
 
 	/**
-	 * 平台确认时间
+	 * 商户确认时间
 	 */
 	private Date platformConfirmTime;
-	
+
 	/**
 	 * 处理时间
 	 */
@@ -101,39 +101,39 @@ public class MerchantOrder {
 	 * 确认时间
 	 */
 	private Date confirmTime;
-	
+
 	/**
 	 * 奖励金
 	 */
 	private Double bounty;
-	
+
 	/**
 	 * 乐观锁版本号
 	 */
 	@Version
 	private Long version;
-	
+
 	@NotFound(action = NotFoundAction.IGNORE)
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "merchant_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
 	private Merchant merchant;
-	
+
 	@NotFound(action = NotFoundAction.IGNORE)
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "received_account_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
 	private UserAccount userAccount;
-	
+
 	public void updateBounty(Double bounty) {
 		this.setBounty(bounty);
 	}
-	
-	public void platformConfirmToPaid() {
-		this.setOrderState(Constant.平台订单状态_平台已确认支付);
+
+	public void merchantConfirmToPaid() {
+		this.setOrderState(Constant.商户订单状态_商户已确认支付);
 		this.setPlatformConfirmTime(new Date());
 	}
 
 	public void confirmToPaid(String note) {
-		this.setOrderState(Constant.平台订单状态_已支付);
+		this.setOrderState(Constant.商户订单状态_已支付);
 		this.setConfirmTime(new Date());
 		this.setDealTime(this.getConfirmTime());
 		this.setNote(note);
@@ -141,13 +141,14 @@ public class MerchantOrder {
 
 	public void updateReceived(String receivedAccountId) {
 		this.setReceivedAccountId(receivedAccountId);
-		this.setOrderState(Constant.平台订单状态_已接单);
+		this.setOrderState(Constant.商户订单状态_已接单);
 		this.setReceivedTime(new Date());
 	}
-	
+
 	public void unpaidCancelOrder(String note) {
-		this.setOrderState(Constant.平台订单状态_未支付取消订单);
-		this.setDealTime(new Date());
+		this.setOrderState(Constant.商户订单状态_未支付取消订单);
+		this.setConfirmTime(new Date());
+		this.setDealTime(this.getConfirmTime());
 		this.setNote(note);
 	}
 

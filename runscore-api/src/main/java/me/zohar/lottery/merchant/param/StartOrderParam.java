@@ -40,7 +40,7 @@ public class StartOrderParam {
 		po.setId(IdUtils.getId());
 		po.setOrderNo(po.getId());
 		po.setSubmitTime(new Date());
-		po.setOrderState(Constant.平台订单状态_等待接单);
+		po.setOrderState(Constant.商户订单状态_等待接单);
 		po.setMerchantId(merchantId);
 		po.setUsefulTime(DateUtil.offset(po.getSubmitTime(), DateField.MINUTE, orderEffectiveDuration));
 		return po;

@@ -10,8 +10,8 @@ import me.zohar.lottery.merchant.domain.MerchantOrder;
 public interface MerchantOrderRepo
 		extends JpaRepository<MerchantOrder, String>, JpaSpecificationExecutor<MerchantOrder> {
 
-	List<MerchantOrder> findByOrderStateAndGatheringAmountIsLessThanEqualOrderBySubmitTimeDesc(String orderState,
-			Double gatheringAmount);
+	List<MerchantOrder> findTop10ByOrderStateAndGatheringAmountIsLessThanEqualAndGatheringChannelCodeInOrderBySubmitTimeDesc(String orderState,
+			Double gatheringAmount, List<String> gatheringChannelCodes);
 
 	List<MerchantOrder> findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(List<String> orderStates,
 			String receivedAccountId);

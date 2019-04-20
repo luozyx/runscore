@@ -1,5 +1,7 @@
 package me.zohar.lottery.gatheringcode.repo;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -10,5 +12,6 @@ public interface GatheringCodeRepo
 
 	GatheringCode findByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(String userAccountId,
 			String gatheringChannelCode, Double gatheringAmount);
-
+	
+	List<GatheringCode> findByUserAccountId(String userAccountId);
 }

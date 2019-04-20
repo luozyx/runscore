@@ -3,7 +3,9 @@ package me.zohar.lottery.merchant.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -23,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.zengtengpeng.annotation.Lock;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
@@ -60,10 +63,10 @@ import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 public class MerchantOrderService {
 
 	@Autowired
-	private MerchantOrderRepo platformOrderRepo;
+	private MerchantOrderRepo merchantOrderRepo;
 
 	@Autowired
-	private MerchantRepo platformRepo;
+	private MerchantRepo merchantRepo;
 
 	@Autowired
 	private UserAccountRepo userAccountRepo;
@@ -78,34 +81,34 @@ public class MerchantOrderService {
 	private PlatformOrderSettingRepo platformOrderSettingRepo;
 
 	@Transactional
-	public void platformConfirmToPaid(@NotBlank String secretKey, @NotBlank String orderId) {
-		Merchant platform = platformRepo.findBySecretKey(secretKey);
-		if (platform == null) {
-			throw new BizException(BizError.平台未接入);
+	public void merchantConfirmToPaid(@NotBlank String secretKey, @NotBlank String orderId) {
+		Merchant merchant = merchantRepo.findBySecretKey(secretKey);
+		if (merchant == null) {
+			throw new BizException(BizError.商户未接入);
 		}
-		MerchantOrder order = platformOrderRepo.findById(orderId).orElse(null);
+		MerchantOrder order = merchantOrderRepo.findById(orderId).orElse(null);
 		if (order == null) {
 			log.error("商家订单不存在;secretKey:{},orderId:{}", secretKey, orderId);
 			throw new BizException(BizError.平台订单不存在);
 		}
-		if (!order.getMerchantId().equals(platform.getId())) {
+		if (!order.getMerchantId().equals(merchant.getId())) {
 			log.error("无权更新商家订单状态为平台已确认支付;secretKey:{},orderId:{}", secretKey, orderId);
 			throw new BizException(BizError.无权更新平台订单状态为平台已确认支付);
 		}
-		if (!Constant.平台订单状态_已接单.equals(order.getOrderState())) {
+		if (!Constant.商户订单状态_已接单.equals(order.getOrderState())) {
 			throw new BizException(BizError.订单状态为已接单才能转为平台已确认支付);
 		}
-		order.platformConfirmToPaid();
-		platformOrderRepo.save(order);
+		order.merchantConfirmToPaid();
+		merchantOrderRepo.save(order);
 	}
 
 	@Transactional(readOnly = true)
 	public OrderGatheringCodeVO getOrderGatheringCode(@NotBlank String secretKey, @NotBlank String orderId) {
-		Merchant platform = platformRepo.findBySecretKey(secretKey);
+		Merchant platform = merchantRepo.findBySecretKey(secretKey);
 		if (platform == null) {
-			throw new BizException(BizError.平台未接入);
+			throw new BizException(BizError.商户未接入);
 		}
-		MerchantOrder order = platformOrderRepo.findById(orderId).orElse(null);
+		MerchantOrder order = merchantOrderRepo.findById(orderId).orElse(null);
 		if (order == null) {
 			log.error("平台订单不存在;secretKey:{},orderId:{}", secretKey, orderId);
 			throw new BizException(BizError.平台订单不存在);
@@ -116,7 +119,7 @@ public class MerchantOrderService {
 		}
 
 		OrderGatheringCodeVO vo = OrderGatheringCodeVO.convertFor(order);
-		if (Constant.平台订单状态_已接单.equals(vo.getOrderState())) {
+		if (Constant.商户订单状态_已接单.equals(vo.getOrderState())) {
 			GatheringCode gatheringCode = gatheringCodeRepo
 					.findByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(order.getReceivedAccountId(),
 							order.getGatheringChannelCode(), order.getGatheringAmount());
@@ -130,7 +133,7 @@ public class MerchantOrderService {
 
 	@Transactional
 	public void userConfirmToPaid(@NotBlank String userAccountId, @NotBlank String orderId) {
-		MerchantOrder platformOrder = platformOrderRepo.findByIdAndReceivedAccountId(orderId, userAccountId);
+		MerchantOrder platformOrder = merchantOrderRepo.findByIdAndReceivedAccountId(orderId, userAccountId);
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
@@ -149,48 +152,38 @@ public class MerchantOrderService {
 
 	@Transactional
 	public void confirmToPaidInner(@NotBlank String orderId, String note) {
-		MerchantOrder platformOrder = platformOrderRepo.findById(orderId).orElse(null);
+		MerchantOrder platformOrder = merchantOrderRepo.findById(orderId).orElse(null);
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
-		if (!(Constant.平台订单状态_已接单.equals(platformOrder.getOrderState())
-				|| Constant.平台订单状态_平台已确认支付.equals(platformOrder.getOrderState())
-				|| Constant.平台订单状态_申请取消订单.equals(platformOrder.getOrderState()))) {
+		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
+				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState())
+				|| Constant.商户订单状态_申请取消订单.equals(platformOrder.getOrderState()))) {
 			throw new BizException(BizError.订单状态为已接单或平台已确认支付或申请取消订单才能转为确认已支付);
 		}
-		UserAccount userAccount = platformOrder.getUserAccount();
-		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() - platformOrder.getGatheringAmount(), 4)
-				.doubleValue();
-		if (cashDeposit < 0) {
-			throw new BizException(BizError.保证金不足无法转为确认已支付);
-		}
-		userAccount.setCashDeposit(cashDeposit);
-		userAccountRepo.save(userAccount);
-
 		platformOrder.confirmToPaid(note);
-		platformOrderRepo.save(platformOrder);
-		accountChangeLogRepo.save(AccountChangeLog.buildWithConfirmToPaid(userAccount, platformOrder));
-		receiveOrderBountySettlement(platformOrder, userAccount);
+		merchantOrderRepo.save(platformOrder);
+		receiveOrderBountySettlement(platformOrder);
 	}
 
 	/**
 	 * 接单奖励金结算
 	 */
 	@Transactional
-	public void receiveOrderBountySettlement(MerchantOrder platformOrder, UserAccount userAccount) {
+	public void receiveOrderBountySettlement(MerchantOrder platformOrder) {
 		PlatformOrderSetting setting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
 		if (setting == null || !setting.getReturnWaterRateEnabled() || setting.getReturnWaterRate() == null) {
 			platformOrder.updateBounty(0d);
-			platformOrderRepo.save(platformOrder);
+			merchantOrderRepo.save(platformOrder);
 			return;
 		}
 
-		double returnWater = platformOrder.getGatheringAmount() * setting.getReturnWaterRate() * 0.01;
-		double cashDeposit = userAccount.getCashDeposit() + returnWater;
-
+		UserAccount userAccount = platformOrder.getUserAccount();
+		double returnWater = NumberUtil
+				.round(platformOrder.getGatheringAmount() * setting.getReturnWaterRate() * 0.01, 4).doubleValue();
 		platformOrder.updateBounty(returnWater);
-		platformOrderRepo.save(platformOrder);
-		userAccount.setCashDeposit(NumberUtil.round(cashDeposit, 4).doubleValue());
+		merchantOrderRepo.save(platformOrder);
+		userAccount.setCashDeposit(NumberUtil.round(userAccount.getCashDeposit() + returnWater, 4).doubleValue());
 		userAccountRepo.save(userAccount);
 		accountChangeLogRepo.save(
 				AccountChangeLog.buildWithReceiveOrderBounty(userAccount, returnWater, setting.getReturnWaterRate()));
@@ -199,34 +192,35 @@ public class MerchantOrderService {
 	@Transactional(readOnly = true)
 	public List<MyWaitConfirmOrderVO> findMyWaitConfirmOrder(@NotBlank String userAccountId) {
 		return MyWaitConfirmOrderVO
-				.convertFor(platformOrderRepo.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
-						Arrays.asList(Constant.平台订单状态_已接单, Constant.平台订单状态_平台已确认支付), userAccountId));
+				.convertFor(merchantOrderRepo.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
+						Arrays.asList(Constant.商户订单状态_已接单, Constant.商户订单状态_商户已确认支付), userAccountId));
 	}
 
 	@Transactional(readOnly = true)
 	public List<MyWaitReceivingOrderVO> findMyWaitReceivingOrder(@NotBlank String userAccountId) {
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
-		Double waitConfirmOrderAmount = 0d;
-		List<MerchantOrder> waitConfirmOrders = platformOrderRepo
-				.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
-						Arrays.asList(Constant.平台订单状态_已接单, Constant.平台订单状态_平台已确认支付), userAccountId);
-		for (MerchantOrder waitConfirmOrder : waitConfirmOrders) {
-			waitConfirmOrderAmount += waitConfirmOrder.getGatheringAmount();
+		List<GatheringCode> gatheringCodes = gatheringCodeRepo.findByUserAccountId(userAccountId);
+		if (CollectionUtil.isEmpty(gatheringCodes)) {
+			throw new BizException(BizError.未设置收款码无法接单);
 		}
-		Double surplusCashDeposit = NumberUtil.round(userAccount.getCashDeposit() - waitConfirmOrderAmount, 4)
-				.doubleValue();
-		List<MerchantOrder> waitReceivingOrders = platformOrderRepo
-				.findByOrderStateAndGatheringAmountIsLessThanEqualOrderBySubmitTimeDesc(Constant.平台订单状态_等待接单,
-						surplusCashDeposit);
+		Map<String, String> gatheringChannelCodeMap = new HashMap<>();
+		for (GatheringCode gatheringCode : gatheringCodes) {
+			gatheringChannelCodeMap.put(gatheringCode.getGatheringChannelCode(),
+					gatheringCode.getGatheringChannelCode());
+		}
+		List<MerchantOrder> waitReceivingOrders = merchantOrderRepo
+				.findTop10ByOrderStateAndGatheringAmountIsLessThanEqualAndGatheringChannelCodeInOrderBySubmitTimeDesc(
+						Constant.商户订单状态_等待接单, userAccount.getCashDeposit(),
+						new ArrayList<>(gatheringChannelCodeMap.keySet()));
 		return MyWaitReceivingOrderVO.convertFor(waitReceivingOrders);
 	}
 
 	@ParamValid
 	@Transactional
 	public PlatformOrderVO startOrder(StartOrderParam param) {
-		Merchant platform = platformRepo.findBySecretKey(param.getSecretKey());
-		if (platform == null) {
-			throw new BizException(BizError.平台未接入);
+		Merchant merchant = merchantRepo.findBySecretKey(param.getSecretKey());
+		if (merchant == null) {
+			throw new BizException(BizError.商户未接入);
 		}
 
 		Integer orderEffectiveDuration = Constant.平台订单默认有效时长;
@@ -235,8 +229,8 @@ public class MerchantOrderService {
 			orderEffectiveDuration = setting.getOrderEffectiveDuration();
 		}
 
-		MerchantOrder platformOrder = param.convertToPo(platform.getId(), orderEffectiveDuration);
-		platformOrderRepo.save(platformOrder);
+		MerchantOrder platformOrder = param.convertToPo(merchant.getId(), orderEffectiveDuration);
+		merchantOrderRepo.save(platformOrder);
 		return PlatformOrderVO.convertFor(platformOrder);
 	}
 
@@ -249,28 +243,25 @@ public class MerchantOrderService {
 	@Lock(keys = "'receiveOrder_' + #orderId")
 	@Transactional
 	public void receiveOrder(@NotBlank String userAccountId, @NotBlank String orderId) {
-		MerchantOrder platformOrder = platformOrderRepo.getOne(orderId);
+		MerchantOrder platformOrder = merchantOrderRepo.getOne(orderId);
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
-		if (!Constant.平台订单状态_等待接单.equals(platformOrder.getOrderState())) {
+		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.订单已被接或已取消);
 		}
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
-		Double waitConfirmOrderAmount = 0d;
-		List<MerchantOrder> waitConfirmOrders = platformOrderRepo
-				.findByOrderStateInAndReceivedAccountIdOrderBySubmitTimeDesc(
-						Arrays.asList(Constant.平台订单状态_已接单, Constant.平台订单状态_平台已确认支付), userAccountId);
-		for (MerchantOrder waitConfirmOrder : waitConfirmOrders) {
-			waitConfirmOrderAmount += waitConfirmOrder.getGatheringAmount();
-		}
-		Double surplusCashDeposit = NumberUtil.round(userAccount.getCashDeposit() - waitConfirmOrderAmount, 4)
+		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() - platformOrder.getGatheringAmount(), 4)
 				.doubleValue();
-		if (surplusCashDeposit < platformOrder.getGatheringAmount()) {
+		if (cashDeposit < 0) {
 			throw new BizException(BizError.保证金不足无法接单);
 		}
+
+		userAccount.setCashDeposit(cashDeposit);
+		userAccountRepo.save(userAccount);
 		platformOrder.updateReceived(userAccount.getId());
-		platformOrderRepo.save(platformOrder);
+		merchantOrderRepo.save(platformOrder);
+		accountChangeLogRepo.save(AccountChangeLog.buildWithReceiveOrderDeduction(userAccount, platformOrder));
 	}
 
 	@ParamValid
@@ -298,7 +289,7 @@ public class MerchantOrderService {
 				return predicates.size() > 0 ? builder.and(predicates.toArray(new Predicate[predicates.size()])) : null;
 			}
 		};
-		Page<MerchantOrder> result = platformOrderRepo.findAll(spec,
+		Page<MerchantOrder> result = merchantOrderRepo.findAll(spec,
 				PageRequest.of(param.getPageNum() - 1, param.getPageSize(), Sort.by(Sort.Order.desc("receivedTime"))));
 		PageResult<MyReceiveOrderRecordVO> pageResult = new PageResult<>(
 				MyReceiveOrderRecordVO.convertFor(result.getContent()), param.getPageNum(), param.getPageSize(),
@@ -345,7 +336,7 @@ public class MerchantOrderService {
 				return predicates.size() > 0 ? builder.and(predicates.toArray(new Predicate[predicates.size()])) : null;
 			}
 		};
-		Page<MerchantOrder> result = platformOrderRepo.findAll(spec,
+		Page<MerchantOrder> result = merchantOrderRepo.findAll(spec,
 				PageRequest.of(param.getPageNum() - 1, param.getPageSize(), Sort.by(Sort.Order.desc("submitTime"))));
 		PageResult<PlatformOrderVO> pageResult = new PageResult<>(PlatformOrderVO.convertFor(result.getContent()),
 				param.getPageNum(), param.getPageSize(), result.getTotalElements());
@@ -359,40 +350,46 @@ public class MerchantOrderService {
 	 */
 	@Transactional
 	public void cancelOrder(@NotBlank String id) {
-		MerchantOrder platformOrder = platformOrderRepo.getOne(id);
-		if (!Constant.平台订单状态_等待接单.equals(platformOrder.getOrderState())) {
+		MerchantOrder platformOrder = merchantOrderRepo.getOne(id);
+		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.只有等待接单状态的平台订单才能取消);
 		}
-		platformOrder.setOrderState(Constant.平台订单状态_人工取消);
+		platformOrder.setOrderState(Constant.商户订单状态_人工取消);
 		platformOrder.setDealTime(new Date());
-		platformOrderRepo.save(platformOrder);
+		merchantOrderRepo.save(platformOrder);
 	}
 
 	@Transactional
 	public void unpaidCancelOrder(@NotBlank String id, String note) {
-		MerchantOrder platformOrder = platformOrderRepo.getOne(id);
-		if (!Constant.平台订单状态_申请取消订单.equals(platformOrder.getOrderState())) {
+		MerchantOrder merchantOrder = merchantOrderRepo.getOne(id);
+		if (!Constant.商户订单状态_申请取消订单.equals(merchantOrder.getOrderState())) {
 			throw new BizException(BizError.只有等待接单状态的平台订单才能取消);
 		}
-		platformOrder.unpaidCancelOrder(note);
-		platformOrderRepo.save(platformOrder);
+		merchantOrder.unpaidCancelOrder(note);
+		merchantOrderRepo.save(merchantOrder);
+		UserAccount userAccount = merchantOrder.getUserAccount();
+		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() + merchantOrder.getGatheringAmount(), 4)
+				.doubleValue();
+		userAccount.setCashDeposit(cashDeposit);
+		userAccountRepo.save(userAccount);
+		accountChangeLogRepo.save(AccountChangeLog.buildWithRefundCashDeposit(userAccount, merchantOrder));
 	}
 
 	@Transactional
 	public void applyCancelOrder(@NotBlank String userAccountId, @NotBlank String orderId) {
-		MerchantOrder platformOrder = platformOrderRepo.findById(orderId).orElse(null);
+		MerchantOrder platformOrder = merchantOrderRepo.findById(orderId).orElse(null);
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
-		if (!(Constant.平台订单状态_已接单.equals(platformOrder.getOrderState())
-				|| Constant.平台订单状态_平台已确认支付.equals(platformOrder.getOrderState()))) {
+		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
+				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState()))) {
 			throw new BizException(BizError.订单状态为已接单或平台已确认支付才能申请取消订单);
 		}
 		if (!platformOrder.getReceivedAccountId().equals(userAccountId)) {
 			throw new BizException(BizError.无权确认订单);
 		}
-		platformOrder.setOrderState(Constant.平台订单状态_申请取消订单);
-		platformOrderRepo.save(platformOrder);
+		platformOrder.setOrderState(Constant.商户订单状态_申请取消订单);
+		merchantOrderRepo.save(platformOrder);
 	}
 
 }

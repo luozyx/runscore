@@ -34,10 +34,10 @@ public class OpenApiController {
 		return Result.success().setData(vo);
 	}
 	
-	@GetMapping("/platformConfirmToPaid")
+	@GetMapping("/merchantConfirmToPaid")
 	@ResponseBody
-	public Result platformConfirmToPaid(String secretKey, String orderId) {
-		platformOrderService.platformConfirmToPaid(secretKey, orderId);
+	public Result merchantConfirmToPaid(String secretKey, String orderId) {
+		platformOrderService.merchantConfirmToPaid(secretKey, orderId);
 		return Result.success();
 	}
 

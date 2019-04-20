@@ -42,7 +42,7 @@ var platformVM = new Vue({
 				},
 				columns : [ {
 					field : 'name',
-					title : '商家名称'
+					title : '商户名称'
 				}, {
 					field : 'secretKey',
 					title : '接入密钥'
@@ -73,7 +73,7 @@ var platformVM = new Vue({
 
 		openAddPlatformModal : function() {
 			this.addOrUpdatePlatformFlag = true;
-			this.platformActionTitle = '新增平台';
+			this.platformActionTitle = '新增商户';
 			this.editPlatform = {
 				name : '',
 				secretKey : ''
@@ -89,7 +89,7 @@ var platformVM = new Vue({
 			}).then(function(res) {
 				that.editPlatform = res.body.data;
 				that.addOrUpdatePlatformFlag = true;
-				that.configActionTitle = '编辑商家信息';
+				that.configActionTitle = '编辑商户信息';
 			});
 		},
 

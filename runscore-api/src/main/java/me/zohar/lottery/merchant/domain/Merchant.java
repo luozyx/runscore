@@ -15,7 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 商家
+ * 商户
  * @author zohar
  * @date 2019年4月19日
  *
