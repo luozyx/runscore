@@ -2,9 +2,12 @@ package me.zohar.lottery.statisticalanalysis.service;
 
 import java.util.List;
 
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import com.alicp.jetcache.anno.Cached;
 
@@ -23,7 +26,9 @@ import me.zohar.lottery.statisticalanalysis.repo.TotalAccountReceiveOrderSituati
 import me.zohar.lottery.statisticalanalysis.repo.TotalStatisticalRepo;
 import me.zohar.lottery.statisticalanalysis.vo.BountyRankVO;
 import me.zohar.lottery.statisticalanalysis.vo.IndexStatisticalVO;
+import me.zohar.lottery.statisticalanalysis.vo.AccountReceiveOrderSituationVO;
 
+@Validated
 @Service
 public class StatisticalAnalysisService {
 
@@ -44,12 +49,24 @@ public class StatisticalAnalysisService {
 
 	@Autowired
 	private TodayStatisticalRepo todayStatisticalRepo;
-	
+
+	@Transactional(readOnly = true)
+	public AccountReceiveOrderSituationVO findMyTodayReceiveOrderSituation(@NotBlank String userAccountId) {
+		return AccountReceiveOrderSituationVO
+				.convertForToday(todayAccountReceiveOrderSituationRepo.findByReceivedAccountId(userAccountId));
+	}
+
+	@Transactional(readOnly = true)
+	public AccountReceiveOrderSituationVO findMyTotalReceiveOrderSituation(@NotBlank String userAccountId) {
+		return AccountReceiveOrderSituationVO
+				.convertForTotal(totalAccountReceiveOrderSituationRepo.findByReceivedAccountId(userAccountId));
+	}
+
 	@Cached(name = "totalTop10BountyRank", expire = 300)
 	@Transactional(readOnly = true)
 	public List<BountyRankVO> findTotalTop10BountyRank() {
 		List<TotalAccountReceiveOrderSituation> receiveOrderSituations = totalAccountReceiveOrderSituationRepo
-				.findTop10ByOrderByTotalBountyDesc();
+				.findTop10ByOrderByBountyDesc();
 		return BountyRankVO.convertFor(receiveOrderSituations);
 	}
 
@@ -57,7 +74,7 @@ public class StatisticalAnalysisService {
 	@Transactional(readOnly = true)
 	public List<BountyRankVO> findTodayTop10BountyRank() {
 		List<TodayAccountReceiveOrderSituation> todayReceiveOrderSituations = todayAccountReceiveOrderSituationRepo
-				.findTop10ByOrderByTotalBountyDesc();
+				.findTop10ByOrderByBountyDesc();
 		return BountyRankVO.convertForToday(todayReceiveOrderSituations);
 	}
 
@@ -74,14 +91,14 @@ public class StatisticalAnalysisService {
 		TotalStatistical statistical = totalStatisticalRepo.findTopBy();
 		return IndexStatisticalVO.convertForTotal(statistical);
 	}
-	
+
 	@Cached(name = "monthStatistical", expire = 300)
 	@Transactional(readOnly = true)
 	public IndexStatisticalVO findMonthStatistical() {
 		MonthStatistical statistical = monthStatisticalRepo.findTopBy();
 		return IndexStatisticalVO.convertForMonth(statistical);
 	}
-	
+
 	@Cached(name = "todayStatistical", expire = 300)
 	@Transactional(readOnly = true)
 	public IndexStatisticalVO findTodayStatistical() {

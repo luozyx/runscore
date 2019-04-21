@@ -23,7 +23,7 @@ public class BountyRankVO implements Serializable {
 
 	private String userName;
 
-	private Double totalBounty;
+	private Double bounty;
 
 	public static List<BountyRankVO> convertForToday(List<TodayAccountReceiveOrderSituation> situations) {
 		if (CollectionUtil.isEmpty(situations)) {

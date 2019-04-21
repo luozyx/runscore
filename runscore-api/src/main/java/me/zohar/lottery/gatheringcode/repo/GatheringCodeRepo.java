@@ -10,8 +10,11 @@ import me.zohar.lottery.gatheringcode.domain.GatheringCode;
 public interface GatheringCodeRepo
 		extends JpaRepository<GatheringCode, String>, JpaSpecificationExecutor<GatheringCode> {
 
-	GatheringCode findByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(String userAccountId,
+	GatheringCode findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(String userAccountId,
 			String gatheringChannelCode, Double gatheringAmount);
-	
+
 	List<GatheringCode> findByUserAccountId(String userAccountId);
+
+	GatheringCode findTopByUserAccountIdAndGatheringChannelCodeAndFixedGatheringAmountIsFalse(String userAccountId,
+			String gatheringChannelCode);
 }

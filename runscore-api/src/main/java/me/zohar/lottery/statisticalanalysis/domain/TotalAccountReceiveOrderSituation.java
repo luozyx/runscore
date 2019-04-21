@@ -25,8 +25,14 @@ public class TotalAccountReceiveOrderSituation {
 
 	private String userName;
 
-	private Double totalGatheringAmount;
+	private Double gatheringAmount;
 
-	private Double totalBounty;
+	private Long orderNum;
+
+	private Double paidAmount;
+
+	private Double bounty;
+
+	private Long paidOrderNum;
 
 }

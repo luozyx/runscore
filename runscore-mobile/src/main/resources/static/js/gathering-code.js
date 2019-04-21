@@ -114,7 +114,7 @@ var gatheringCodeVM = new Vue({
 					footer : ''
 				},
 				maxFileCount : 1,
-				uploadUrl : '/storage/upload',
+				uploadUrl : '/storage/uploadGatheringCode',
 				enctype : 'multipart/form-data',
 				allowedFileExtensions : [ 'jpg', 'png', 'bmp', 'jpeg' ],
 				initialPreview : initialPreview,

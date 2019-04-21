@@ -14,7 +14,10 @@ var accountManageVM = new Vue({
 		newMoneyPwd : '',
 		bindBankInfoFlag : false,
 		bankInfo : {},
-		accountEditFlag : false
+		accountEditFlag : false,
+		adjustCashDepositFlag : false,
+		logAccountChangeLog : true,
+		cashDeposit : '',
 	},
 	computed : {},
 	created : function() {
@@ -97,7 +100,7 @@ var accountManageVM = new Vue({
 				}, {
 					field : 'stateName',
 					title : '账号状态'
-				},{
+				}, {
 					field : 'receiveOrderStateName',
 					title : '接单状态'
 				}, {
@@ -112,7 +115,7 @@ var accountManageVM = new Vue({
 				}, {
 					title : '操作',
 					formatter : function(value, row, index) {
-						return [ '<button type="button" class="account-edit-btn btn btn-outline-primary btn-sm" style="margin-right: 4px;">编辑</button>', '<button type="button" class="modify-login-pwd-btn btn btn-outline-secondary btn-sm" style="margin-right: 4px;">修改登录密码</button>', '<button type="button" class="del-account-btn btn btn-outline-danger btn-sm">删除</button>' ].join('');
+						return [ '<button type="button" class="account-edit-btn btn btn-outline-primary btn-sm" style="margin-right: 4px;">编辑</button>', '<button type="button" class="modify-login-pwd-btn btn btn-outline-secondary btn-sm" style="margin-right: 4px;">修改登录密码</button>', '<button type="button" class="adjust-cash-deposit-btn btn btn-outline-info btn-sm" style="margin-right: 4px;">调整保证金</button>', '<button type="button" class="del-account-btn btn btn-outline-danger btn-sm">删除</button>' ].join('');
 					},
 					events : {
 						'click .account-edit-btn' : function(event, value, row, index) {
@@ -120,6 +123,9 @@ var accountManageVM = new Vue({
 						},
 						'click .modify-login-pwd-btn' : function(event, value, row, index) {
 							that.showModifyLoginPwdModal(row);
+						},
+						'click .adjust-cash-deposit-btn' : function(event, value, row, index) {
+							that.showAdjustCashDepositModal(row);
 						},
 						'click .del-account-btn' : function(event, value, row, index) {
 							that.delAccount(row);
@@ -132,6 +138,13 @@ var accountManageVM = new Vue({
 			$('.account-manage-table').bootstrapTable('refreshOptions', {
 				pageNumber : 1
 			});
+		},
+
+		showAdjustCashDepositModal : function(row) {
+			this.selectedAccount = row;
+			this.adjustCashDepositFlag = true;
+			this.logAccountChangeLog = true;
+			this.cashDeposit = '';
 		},
 
 		openAddAccountModal : function() {

@@ -12,6 +12,7 @@
 <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
 <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="/js/common/common.js"></script>
 <link href="/css/common/common.css" rel="stylesheet" type="text/css">
 <style type="text/css">
 .suspend-receive-order {
@@ -229,7 +230,7 @@
 					that.platformOrderListAreaTip = '正在获取订单...';
 					that.$http.get('/platformOrder/findMyWaitReceivingOrder').then(function(res) {
 						that.waitReceivingOrders = res.body.data;
-						if (that.waitReceivingOrders.length == 0) {
+						if (that.waitReceivingOrders == null || that.waitReceivingOrders.length == 0) {
 							that.platformOrderListAreaTip = '暂无最新订单';
 						} else {
 							that.platformOrderListAreaTip = '已获取最新订单';

@@ -195,6 +195,52 @@
 				</div>
 			</div>
 		</div>
+		<div v-if="adjustCashDepositFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">调整保证金</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="adjustCashDepositFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>用户名:</label> <input type="text" class="form-control" v-model="selectedAccount.userName" disabled>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>真实姓名:</label> <input type="text" class="form-control" v-model="selectedAccount.realName" disabled>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>原保证金:</label> <input type="number" class="form-control" v-model="selectedAccount.cashDeposit" disabled>
+										</div>
+										<div class="col-sm-6">
+											<label> <span>调整为:</span>
+												<div class="custom-control custom-checkbox custom-control-inline">
+													<input type="checkbox" id="logAccountChangeLog" class="custom-control-input" v-model="logAccountChangeLog"> <label for="logAccountChangeLog" class="custom-control-label">记录账变日志</label>
+												</div>
+											</label> <input type="number" class="form-control" v-model="cashDeposit">
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="modifyLoginPwd">保存</button>
+								<button type="button" class="btn btn-sm" v-on:click="adjustCashDepositFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div v-if="modifyLoginPwdFlag">
 			<div class="modal-mask">
 				<div class="modal-wrapper">

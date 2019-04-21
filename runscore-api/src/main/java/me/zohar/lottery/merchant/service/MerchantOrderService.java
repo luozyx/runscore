@@ -2,10 +2,13 @@ package me.zohar.lottery.merchant.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -119,13 +122,24 @@ public class MerchantOrderService {
 		}
 
 		OrderGatheringCodeVO vo = OrderGatheringCodeVO.convertFor(order);
-		if (Constant.商户订单状态_已接单.equals(vo.getOrderState())) {
-			GatheringCode gatheringCode = gatheringCodeRepo
-					.findByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(order.getReceivedAccountId(),
-							order.getGatheringChannelCode(), order.getGatheringAmount());
-			if (gatheringCode != null) {
-				String gatheringCodeUrl = ConfigHolder.getConfigValue("storageUrl") + gatheringCode.getStorageId();
-				vo.setGatheringCodeUrl(gatheringCodeUrl);
+		if (Constant.商户订单状态_已接单.equals(vo.getOrderState()) || Constant.商户订单状态_商户已确认支付.equals(vo.getOrderState())) {
+			PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+			if (merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
+				GatheringCode gatheringCode = gatheringCodeRepo
+						.findTopByUserAccountIdAndGatheringChannelCodeAndFixedGatheringAmountIsFalse(
+								order.getReceivedAccountId(), order.getGatheringChannelCode());
+				if (gatheringCode != null) {
+					String gatheringCodeUrl = ConfigHolder.getConfigValue("storageUrl") + gatheringCode.getStorageId();
+					vo.setGatheringCodeUrl(gatheringCodeUrl);
+				}
+			} else {
+				GatheringCode gatheringCode = gatheringCodeRepo
+						.findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(order.getReceivedAccountId(),
+								order.getGatheringChannelCode(), order.getGatheringAmount());
+				if (gatheringCode != null) {
+					String gatheringCodeUrl = ConfigHolder.getConfigValue("storageUrl") + gatheringCode.getStorageId();
+					vo.setGatheringCodeUrl(gatheringCodeUrl);
+				}
 			}
 		}
 		return vo;
@@ -203,16 +217,52 @@ public class MerchantOrderService {
 		if (CollectionUtil.isEmpty(gatheringCodes)) {
 			throw new BizException(BizError.未设置收款码无法接单);
 		}
-		Map<String, String> gatheringChannelCodeMap = new HashMap<>();
-		for (GatheringCode gatheringCode : gatheringCodes) {
-			gatheringChannelCodeMap.put(gatheringCode.getGatheringChannelCode(),
-					gatheringCode.getGatheringChannelCode());
+		PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		if (merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
+			Map<String, String> gatheringChannelCodeMap = new HashMap<>();
+			for (GatheringCode gatheringCode : gatheringCodes) {
+				gatheringChannelCodeMap.put(gatheringCode.getGatheringChannelCode(),
+						gatheringCode.getGatheringChannelCode());
+			}
+			List<MerchantOrder> waitReceivingOrders = merchantOrderRepo
+					.findTop10ByOrderStateAndGatheringAmountIsLessThanEqualAndGatheringChannelCodeInOrderBySubmitTimeDesc(
+							Constant.商户订单状态_等待接单, userAccount.getCashDeposit(),
+							new ArrayList<>(gatheringChannelCodeMap.keySet()));
+			return MyWaitReceivingOrderVO.convertFor(waitReceivingOrders);
 		}
-		List<MerchantOrder> waitReceivingOrders = merchantOrderRepo
-				.findTop10ByOrderStateAndGatheringAmountIsLessThanEqualAndGatheringChannelCodeInOrderBySubmitTimeDesc(
-						Constant.商户订单状态_等待接单, userAccount.getCashDeposit(),
-						new ArrayList<>(gatheringChannelCodeMap.keySet()));
-		return MyWaitReceivingOrderVO.convertFor(waitReceivingOrders);
+		Map<String, List<Double>> gatheringChannelCodeMap = new HashMap<>();
+		for (GatheringCode gatheringCode : gatheringCodes) {
+			if (gatheringChannelCodeMap.get(gatheringCode.getGatheringChannelCode()) == null) {
+				gatheringChannelCodeMap.put(gatheringCode.getGatheringChannelCode(), new ArrayList<>());
+			}
+			if (userAccount.getCashDeposit() < gatheringCode.getGatheringAmount()) {
+				continue;
+			}
+			gatheringChannelCodeMap.get(gatheringCode.getGatheringChannelCode())
+			.add(gatheringCode.getGatheringAmount());
+		}
+		List<MerchantOrder> waitReceivingOrders = new ArrayList<>();
+		for (Entry<String, List<Double>> entry : gatheringChannelCodeMap.entrySet()) {
+			if (CollectionUtil.isEmpty(entry.getValue())) {
+				continue;
+			}
+			List<MerchantOrder> tmpOrders = merchantOrderRepo
+					.findTop10ByOrderStateAndGatheringAmountInAndGatheringChannelCodeOrderBySubmitTimeDesc(
+							Constant.商户订单状态_等待接单, entry.getValue(), entry.getKey());
+			waitReceivingOrders.addAll(tmpOrders);
+		}
+		Collections.sort(waitReceivingOrders, new Comparator<MerchantOrder>() {
+
+			@Override
+			public int compare(MerchantOrder o1, MerchantOrder o2) {
+				return o1.getSubmitTime().before(o2.getSubmitTime()) ? 1 : -1;
+			}
+		});
+		if (waitReceivingOrders.isEmpty()) {
+			return MyWaitReceivingOrderVO.convertFor(waitReceivingOrders);
+		}
+		return MyWaitReceivingOrderVO.convertFor(
+				waitReceivingOrders.subList(0, waitReceivingOrders.size() >= 10 ? 10 : waitReceivingOrders.size()));
 	}
 
 	@ParamValid
@@ -243,12 +293,25 @@ public class MerchantOrderService {
 	@Lock(keys = "'receiveOrder_' + #orderId")
 	@Transactional
 	public void receiveOrder(@NotBlank String userAccountId, @NotBlank String orderId) {
+		List<GatheringCode> gatheringCodes = gatheringCodeRepo.findByUserAccountId(userAccountId);
+		if (CollectionUtil.isEmpty(gatheringCodes)) {
+			throw new BizException(BizError.未设置收款码无法接单);
+		}
 		MerchantOrder platformOrder = merchantOrderRepo.getOne(orderId);
 		if (platformOrder == null) {
 			throw new BizException(BizError.平台订单不存在);
 		}
 		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.订单已被接或已取消);
+		}
+		PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		if (!merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
+			GatheringCode fixedAmountGatheringCode = gatheringCodeRepo
+					.findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(userAccountId,
+							platformOrder.getGatheringChannelCode(), platformOrder.getGatheringAmount());
+			if (fixedAmountGatheringCode == null) {
+				throw new BizException(BizError.无法接单找不到对应金额的收款码);
+			}
 		}
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
 		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() - platformOrder.getGatheringAmount(), 4)

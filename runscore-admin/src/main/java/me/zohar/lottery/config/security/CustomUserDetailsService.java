@@ -33,6 +33,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 			log.warn("账号不存在:{}", username);
 			throw new AuthenticationServiceException("用户名或密码不正确");
 		}
+		if (Constant.账号状态_禁用.equals(loginAccountInfo.getState())) {
+			log.warn("账号已被禁用:{}", username);
+			throw new AuthenticationServiceException("账号已被禁用");
+		}
 		if (!Constant.账号类型_管理员.equals(loginAccountInfo.getAccountType())) {
 			log.warn("该账号不是管理员,无法登陆到后台:{}", username);
 			throw new AuthenticationServiceException("该账号不是管理员,无法登陆到后台");

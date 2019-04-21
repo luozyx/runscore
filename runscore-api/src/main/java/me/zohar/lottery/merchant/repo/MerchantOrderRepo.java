@@ -17,5 +17,8 @@ public interface MerchantOrderRepo
 			String receivedAccountId);
 	
 	MerchantOrder findByIdAndReceivedAccountId(String id, String receivedAccountId);
+	
+	List<MerchantOrder> findTop10ByOrderStateAndGatheringAmountInAndGatheringChannelCodeOrderBySubmitTimeDesc(String orderState,
+			List<Double> gatheringAmounts, String gatheringChannelCode);
 
 }

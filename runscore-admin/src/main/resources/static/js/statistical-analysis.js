@@ -163,7 +163,7 @@ var statisticalAnalysisVM = new Vue({
 				var top10BountyRanks = res.body.data;
 				for (var i = 0; i < top10BountyRanks.length; i++) {
 					xAxisDatas.push(top10BountyRanks[i].userName);
-					seriesDatas.push(top10BountyRanks[i].totalBounty);
+					seriesDatas.push(top10BountyRanks[i].bounty);
 				}
 				totalBountyRankChart.setOption({
 					xAxis : {
@@ -184,7 +184,7 @@ var statisticalAnalysisVM = new Vue({
 				var top10BountyRanks = res.body.data;
 				for (var i = 0; i < top10BountyRanks.length; i++) {
 					xAxisDatas.push(top10BountyRanks[i].userName);
-					seriesDatas.push(top10BountyRanks[i].totalBounty);
+					seriesDatas.push(top10BountyRanks[i].bounty);
 				}
 				todayBountyRankChart.setOption({
 					xAxis : {

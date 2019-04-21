@@ -1,12 +1,14 @@
 package me.zohar.lottery.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.useraccount.service.UserAccountService;
 import me.zohar.lottery.useraccount.vo.LoginAccountInfoVO;
 
@@ -30,6 +32,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 		if (loginAccountInfo == null) {
 			log.warn("账号不存在:{}", username);
 			throw new UsernameNotFoundException("用户名或密码不正确");
+		}
+		if (Constant.账号状态_禁用.equals(loginAccountInfo.getState())) {
+			log.warn("账号已被禁用:{}", username);
+			throw new AuthenticationServiceException("账号已被禁用");
 		}
 
 		return new UserAccountDetails(loginAccountInfo);

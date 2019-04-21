@@ -37,6 +37,11 @@ public class LoginAccountInfoVO {
 	private String accountType;
 
 	private String accountTypeName;
+	
+	/**
+	 * 状态
+	 */
+	private String state;
 
 	public static LoginAccountInfoVO convertFor(UserAccount userAccount) {
 		if (userAccount == null) {

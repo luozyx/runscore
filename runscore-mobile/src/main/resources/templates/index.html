@@ -13,37 +13,21 @@
 <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <link href="/css/common/common.css" rel="stylesheet" type="text/css">
 <style type="text/css">
-.quick-navbar {
-	margin-bottom: 0.5rem;
-	padding-top: 0.2rem;
-	padding-bottom: 0.2rem;
+.gathering-item {
+	
 }
 
-.quick-navbar i {
-	width: 43px;
-	height: 43px;
-	display: block;
-	background-size: 100%;
+.gathering-item label {
+	text-align: end;
+	width: 8rem;
+	margin-right: 2rem;
+	color: #495057;
+	font-weight: bold;
 }
 
-.login-icon {
-	background-image: url(/images/index/login.png)
-}
-
-.register-icon {
-	background-image: url(/images/index/register.png)
-}
-
-.recharge-icon {
-	background-image: url(/images/index/recharge.png)
-}
-
-.withdraw-icon {
-	background-image: url(/images/index/withdraw.png)
-}
-
-.service-icon {
-	background-image: url(/images/index/service.png)
+.gathering-item span {
+	color: #0062cc;
+	font-weight: bold;
 }
 
 .bounty-ranking-table {
@@ -68,12 +52,53 @@
 	<div th:replace="common/header::html"></div>
 	<div id="index" v-cloak>
 		<div class="page-body">
-			<nav class="navbar bg-light quick-navbar">
-				<a class="navbar-brand" v-show="!isLoggedInFlag" v-on:click="goTo('/login')"><i class="login-icon"></i> <span>登录</span> </a> <a class="navbar-brand" v-show="!isLoggedInFlag" v-on:click="goTo('/register')"><i class="register-icon"></i><span>注册</span></a> <a class="navbar-brand" v-show="isLoggedInFlag" v-on:click="goTo('/login')"><i class="recharge-icon"></i> <span>充值</span> </a> <a class="navbar-brand" v-show="isLoggedInFlag" v-on:click="goTo('/login')"><i class="withdraw-icon"></i> <span>提现</span> </a> <a class="navbar-brand"><i class="service-icon"></i><span>客服</span></a>
-			</nav>
+			<div class="card" v-show="isLoggedInFlag && showTodayReceiveOrderSituationFlag">
+				<div class="card-header">
+					<span>今日接单情况</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTotalReceiveOrderSituation">累计接单情况&gt;</span>
+				</div>
+				<div class="card-body">
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>收款金额</label> <span>{{todayReceiveOrderSituation != null ? todayReceiveOrderSituation.paidAmount : 0}}元</span>
+						</div>
+					</div>
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>已支付订单量</label> <span>{{todayReceiveOrderSituation != null ? todayReceiveOrderSituation.paidOrderNum : 0}}笔</span>
+						</div>
+					</div>
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>奖励金</label> <span>{{todayReceiveOrderSituation != null ? todayReceiveOrderSituation.bounty : 0}}元</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card" v-show="isLoggedInFlag && !showTodayReceiveOrderSituationFlag">
+				<div class="card-header">
+					<span>累计接单情况</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTodayReceiveOrderSituation">今日接单情况&gt;</span>
+				</div>
+				<div class="card-body">
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>收款金额</label> <span>{{totalReceiveOrderSituation != null ? totalReceiveOrderSituation.paidAmount : 0}}元</span>
+						</div>
+					</div>
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>已支付订单量</label> <span>{{totalReceiveOrderSituation != null ? totalReceiveOrderSituation.paidOrderNum : 0}}笔</span>
+						</div>
+					</div>
+					<div class="row gathering-item">
+						<div class="col-sm-8 offset-sm-4">
+							<label>奖励金</label> <span>{{totalReceiveOrderSituation != null ? totalReceiveOrderSituation.bounty : 0}}元</span>
+						</div>
+					</div>
+				</div>
+			</div>
 			<div class="card" v-show="showTodayBountyRankFlag">
 				<div class="card-header">
-					<span>当日奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTotalTop10BountyRank">累计排行榜&gt;</span>
+					<span>今日奖励金排行榜</span><span class="float-right" style="color: #dc3545; font-weight: bold;" v-on:click="showTotalTop10BountyRank">累计排行榜&gt;</span>
 				</div>
 				<div class="card-body">
 					<table class="table table-sm bounty-ranking-table">
@@ -81,14 +106,14 @@
 							<tr>
 								<th>排行</th>
 								<th>账号</th>
-								<th>总奖励金额</th>
+								<th>奖励金</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="(bountyRank,index) in todayBountyRanks">
 								<td><span class="badge" v-bind:class="[index > 2 ? 'badge-success' : 'badge-danger']">{{index + 1}}</span></td>
 								<td>{{bountyRank.userName}}</td>
-								<td>￥{{bountyRank.totalBounty}}</td>
+								<td>￥{{bountyRank.bounty}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -104,14 +129,14 @@
 							<tr>
 								<th>排行</th>
 								<th>账号</th>
-								<th>总奖励金额</th>
+								<th>奖励金</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="(bountyRank,index) in totalBountyRanks">
 								<td><span class="badge" v-bind:class="[index > 2 ? 'badge-success' : 'badge-danger']">{{index + 1}}</span></td>
 								<td>{{bountyRank.userName}}</td>
-								<td>￥{{bountyRank.totalBounty}}</td>
+								<td>￥{{bountyRank.bounty}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -124,7 +149,10 @@
 		var indexVM = new Vue({
 			el : '#index',
 			data : {
-				isLoggedInFlag : true,
+				isLoggedInFlag : false,
+				showTodayReceiveOrderSituationFlag : false,
+				todayReceiveOrderSituation : {},
+				totalReceiveOrderSituation : {},
 				showTodayBountyRankFlag : true,
 				todayBountyRanks : [],
 				totalBountyRanks : []
@@ -152,7 +180,7 @@
 						that.totalBountyRanks = res.body.data;
 					});
 				},
-				
+
 				showTodayTop10BountyRank : function() {
 					this.showTodayBountyRankFlag = true;
 					this.loadTodayTop10BountyRank();
@@ -163,14 +191,39 @@
 					this.loadTotalTop10BountyRank();
 				},
 
+				showTodayReceiveOrderSituation : function() {
+					this.showTodayReceiveOrderSituationFlag = true;
+					this.loadTodayReceiveOrderSituation();
+				},
+
+				showTotalReceiveOrderSituation : function() {
+					this.showTodayReceiveOrderSituationFlag = false;
+					this.loadTotalReceiveOrderSituation();
+				},
+
+				loadTodayReceiveOrderSituation : function() {
+					var that = this;
+					that.$http.get('/statisticalAnalysis/findMyTodayReceiveOrderSituation').then(function(res) {
+						that.todayReceiveOrderSituation = res.body.data;
+					});
+				},
+
+				loadTotalReceiveOrderSituation : function() {
+					var that = this;
+					that.$http.get('/statisticalAnalysis/findMyTotalReceiveOrderSituation').then(function(res) {
+						that.totalReceiveOrderSituation = res.body.data;
+					});
+				},
+
 				/**
 				 * 获取账号登录情况
 				 */
 				getUserAccountInfo : function() {
 					var that = this;
 					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
-						if (res.body.data == null) {
-							that.isLoggedInFlag = false;
+						if (res.body.data != null) {
+							that.isLoggedInFlag = true;
+							that.showTodayReceiveOrderSituation();
 						}
 					});
 				}

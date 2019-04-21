@@ -9,6 +9,8 @@ import me.zohar.lottery.statisticalanalysis.domain.TodayAccountReceiveOrderSitua
 
 public interface TodayAccountReceiveOrderSituationRepo extends JpaRepository<TodayAccountReceiveOrderSituation, String>, JpaSpecificationExecutor<TodayAccountReceiveOrderSituation> {
 	
-	List<TodayAccountReceiveOrderSituation> findTop10ByOrderByTotalBountyDesc();
+	List<TodayAccountReceiveOrderSituation> findTop10ByOrderByBountyDesc();
+	
+	TodayAccountReceiveOrderSituation findByReceivedAccountId(String receivedAccountId);
 
 }
