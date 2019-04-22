@@ -12,6 +12,7 @@ import me.zohar.lottery.common.vo.Result;
 import me.zohar.lottery.config.security.UserAccountDetails;
 import me.zohar.lottery.useraccount.param.AccountChangeLogQueryCondParam;
 import me.zohar.lottery.useraccount.param.AddUserAccountParam;
+import me.zohar.lottery.useraccount.param.AdjustCashDepositParam;
 import me.zohar.lottery.useraccount.param.BindBankInfoParam;
 import me.zohar.lottery.useraccount.param.UserAccountEditParam;
 import me.zohar.lottery.useraccount.param.UserAccountQueryCondParam;
@@ -100,6 +101,13 @@ public class UserAccountController {
 	@ResponseBody
 	public Result addUserAccount(AddUserAccountParam param) {
 		userAccountService.addUserAccount(param);
+		return Result.success();
+	}
+	
+	@PostMapping("/adjustCashDeposit")
+	@ResponseBody
+	public Result adjustCashDeposit(AdjustCashDepositParam param) {
+		userAccountService.adjustCashDeposit(param);
 		return Result.success();
 	}
 	

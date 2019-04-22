@@ -16,8 +16,8 @@ var accountManageVM = new Vue({
 		bankInfo : {},
 		accountEditFlag : false,
 		adjustCashDepositFlag : false,
-		logAccountChangeLog : true,
-		cashDeposit : '',
+		accountChangeTypeCode : '',
+		accountChangeAmount : '',
 	},
 	computed : {},
 	created : function() {
@@ -144,7 +144,43 @@ var accountManageVM = new Vue({
 			this.selectedAccount = row;
 			this.adjustCashDepositFlag = true;
 			this.logAccountChangeLog = true;
-			this.cashDeposit = '';
+			this.accountChangeTypeCode = '';
+			this.accountChangeAmount = '';
+		},
+
+		adjustCashDeposit : function() {
+			var that = this;
+			if (that.accountChangeTypeCode == null || that.accountChangeTypeCode == '') {
+				layer.alert('请选择帐变类型', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			if (that.accountChangeAmount == null || that.accountChangeAmount == '') {
+				layer.alert('请输入帐变金额', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			that.$http.post('/userAccount/adjustCashDeposit', {
+				userAccountId : that.selectedAccount.id,
+				accountChangeTypeCode : that.accountChangeTypeCode,
+				accountChangeAmount : that.accountChangeAmount
+			}, {
+				emulateJSON : true
+			}).then(function(res) {
+				layer.alert('操作成功!', {
+					icon : 1,
+					time : 3000,
+					shade : false
+				});
+				that.adjustCashDepositFlag = false;
+				that.refreshTable();
+			});
 		},
 
 		openAddAccountModal : function() {

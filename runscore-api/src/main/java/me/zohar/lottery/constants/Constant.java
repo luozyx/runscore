@@ -57,6 +57,10 @@ public class Constant {
 	public static final String 账变日志类型_账号提现 = "5";
 	
 	public static final String 账变日志类型_退还保证金 = "6";
+	
+	public static final String 账变日志类型_手工增保证金 = "8";
+	
+	public static final String 账变日志类型_手工减保证金 = "9";
 
 	public static final String 充提日志订单类型_充值 = "1";
 

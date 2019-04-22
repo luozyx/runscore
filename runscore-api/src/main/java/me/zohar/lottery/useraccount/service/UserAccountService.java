@@ -22,19 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import me.zohar.lottery.common.exception.BizError;
 import me.zohar.lottery.common.exception.BizException;
 import me.zohar.lottery.common.valid.ParamValid;
 import me.zohar.lottery.common.vo.PageResult;
-import me.zohar.lottery.mastercontrol.domain.InviteRegisterSetting;
-import me.zohar.lottery.mastercontrol.repo.InviteRegisterSettingRepo;
+import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.useraccount.domain.AccountChangeLog;
-import me.zohar.lottery.useraccount.domain.InviteCode;
 import me.zohar.lottery.useraccount.domain.UserAccount;
 import me.zohar.lottery.useraccount.param.AccountChangeLogQueryCondParam;
 import me.zohar.lottery.useraccount.param.AddUserAccountParam;
+import me.zohar.lottery.useraccount.param.AdjustCashDepositParam;
 import me.zohar.lottery.useraccount.param.BindBankInfoParam;
 import me.zohar.lottery.useraccount.param.ModifyLoginPwdParam;
 import me.zohar.lottery.useraccount.param.ModifyMoneyPwdParam;
@@ -42,11 +41,9 @@ import me.zohar.lottery.useraccount.param.UserAccountEditParam;
 import me.zohar.lottery.useraccount.param.UserAccountQueryCondParam;
 import me.zohar.lottery.useraccount.param.UserAccountRegisterParam;
 import me.zohar.lottery.useraccount.repo.AccountChangeLogRepo;
-import me.zohar.lottery.useraccount.repo.InviteCodeRepo;
 import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 import me.zohar.lottery.useraccount.vo.AccountChangeLogVO;
 import me.zohar.lottery.useraccount.vo.BankInfoVO;
-import me.zohar.lottery.useraccount.vo.InviteDetailsInfoVO;
 import me.zohar.lottery.useraccount.vo.LoginAccountInfoVO;
 import me.zohar.lottery.useraccount.vo.UserAccountDetailsInfoVO;
 import me.zohar.lottery.useraccount.vo.UserAccountInfoVO;
@@ -54,18 +51,15 @@ import me.zohar.lottery.useraccount.vo.UserAccountInfoVO;
 @Validated
 @Service
 public class UserAccountService {
+	
+	@Autowired
+	private InviteCodeService inviteCodeService;
 
 	@Autowired
 	private UserAccountRepo userAccountRepo;
 
 	@Autowired
 	private AccountChangeLogRepo accountChangeLogRepo;
-
-	@Autowired
-	private InviteCodeRepo inviteCodeRepo;
-
-	@Autowired
-	private InviteRegisterSettingRepo inviteRegisterSettingRepo;
 
 	/**
 	 * 更新接单状态
@@ -156,7 +150,6 @@ public class UserAccountService {
 		modifyLoginPwd(param.getUserAccountId(), param.getNewLoginPwd());
 	}
 
-	@ParamValid
 	@Transactional
 	public void modifyLoginPwd(@NotBlank String userAccountId, @NotBlank String newLoginPwd) {
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
@@ -225,11 +218,10 @@ public class UserAccountService {
 	 * 账号注册
 	 * 
 	 * @param param
-	 * @return
 	 */
 	@ParamValid
 	@Transactional
-	public UserAccountInfoVO userAccountRegister(UserAccountRegisterParam param) {
+	public void userAccountRegister(UserAccountRegisterParam param) {
 		UserAccount userAccount = userAccountRepo.findByUserName(param.getUserName());
 		if (userAccount != null) {
 			throw new BizException(BizError.用户名已存在);
@@ -238,30 +230,8 @@ public class UserAccountService {
 		param.setLoginPwd(encodePwd);
 		UserAccount newUserAccount = param.convertToPo();
 		newUserAccount.setCashDeposit(0d);
-		newUserAccount.setInviterId(confirmCodeAndGetInviterId(param.getInviteCode()));
+		newUserAccount.setInviterId(inviteCodeService.confirmCodeAndGetInviterId(param.getInviteCode(), newUserAccount.getId()));
 		userAccountRepo.save(newUserAccount);
-		return UserAccountInfoVO.convertFor(newUserAccount);
-	}
-
-	/**
-	 * 确认邀请码并返回邀请人id
-	 * 
-	 * @param code
-	 * @return
-	 */
-	public String confirmCodeAndGetInviterId(String code) {
-		InviteRegisterSetting setting = inviteRegisterSettingRepo.findTopByOrderByEnabled();
-		if (setting == null || !setting.getEnabled()) {
-			return null;
-		}
-		if (StrUtil.isBlank(code)) {
-			throw new BizException(BizError.邀请码不存在或已失效);
-		}
-		InviteCode inviteCode = inviteCodeRepo.findTopByCodeAndPeriodOfValidityGreaterThanEqual(code, new Date());
-		if (inviteCode == null) {
-			throw new BizException(BizError.邀请码不存在或已失效);
-		}
-		return inviteCode.getUserAccountId();
 	}
 
 	@Transactional(readOnly = true)
@@ -298,46 +268,33 @@ public class UserAccountService {
 		return pageResult;
 	}
 
-	@Transactional(readOnly = true)
-	public InviteDetailsInfoVO getInviteDetailsInfo(String userAccountId) {
-		InviteCode inviteCode = inviteCodeRepo.findTopByUserAccountIdOrderByPeriodOfValidityDesc(userAccountId);
-		if (inviteCode == null) {
-			return null;
-		}
-
-		Long numberOfInvite = userAccountRepo.countByInviterId(userAccountId);
-		InviteDetailsInfoVO inviteDetailsInfo = InviteDetailsInfoVO.convertFor(inviteCode, numberOfInvite);
-		return inviteDetailsInfo;
-	}
-
-	/**
-	 * 生成邀请码
-	 * 
-	 * @param userAccountId
-	 */
-	@Transactional
-	public void generateInviteCode(String userAccountId) {
-		InviteRegisterSetting setting = inviteRegisterSettingRepo.findTopByOrderByEnabled();
-		if (setting == null || !setting.getEnabled()) {
-			throw new BizException(BizError.邀请注册功能已关闭);
-		}
-
-		InviteCode inviteCode = inviteCodeRepo.findTopByUserAccountIdOrderByPeriodOfValidityDesc(userAccountId);
-		if (inviteCode != null && inviteCode.getPeriodOfValidity().getTime() > new Date().getTime()) {
-			return;
-		}
-
-		String code = IdUtil.fastSimpleUUID().substring(0, 6);
-		while (inviteCodeRepo.findTopByCodeAndPeriodOfValidityGreaterThanEqual(code, new Date()) != null) {
-			code = IdUtil.fastSimpleUUID().substring(0, 6);
-		}
-		InviteCode newInviteCode = InviteCode.generateInviteCode(code, setting.getEffectiveDuration(), userAccountId);
-		inviteCodeRepo.save(newInviteCode);
-	}
-
 	@Transactional
 	public void delUserAccount(@NotBlank String userAccountId) {
 		userAccountRepo.deleteById(userAccountId);
+	}
+
+	@ParamValid
+	@Transactional
+	public void adjustCashDeposit(AdjustCashDepositParam param) {
+		UserAccount userAccount = userAccountRepo.getOne(param.getUserAccountId());
+		if (Constant.账变日志类型_手工增保证金.equals(param.getAccountChangeTypeCode())) {
+			Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() + param.getAccountChangeAmount(), 4)
+					.doubleValue();
+			userAccount.setCashDeposit(cashDeposit);
+			userAccountRepo.save(userAccount);
+			accountChangeLogRepo.save(
+					AccountChangeLog.buildWithHandworkAdjustCashDeposit(userAccount, param.getAccountChangeAmount()));
+		} else if (Constant.账变日志类型_手工减保证金.equals(param.getAccountChangeTypeCode())) {
+			Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() - param.getAccountChangeAmount(), 4)
+					.doubleValue();
+			if (cashDeposit < 0) {
+				throw new BizException(BizError.保证金不足无法手工减保证金);
+			}
+			userAccount.setCashDeposit(cashDeposit);
+			userAccountRepo.save(userAccount);
+			accountChangeLogRepo.save(
+					AccountChangeLog.buildWithHandworkAdjustCashDeposit(userAccount, -param.getAccountChangeAmount()));
+		}
 	}
 
 }

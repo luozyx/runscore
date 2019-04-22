@@ -9,9 +9,6 @@ import me.zohar.lottery.useraccount.domain.InviteCode;
 
 public interface InviteCodeRepo extends JpaRepository<InviteCode, String>, JpaSpecificationExecutor<InviteCode> {
 	
-	InviteCode findTopByUserAccountIdOrderByPeriodOfValidityDesc(String userAccountId);
-	
-	InviteCode findTopByCodeAndPeriodOfValidityGreaterThanEqual(String code, Date periodOfValidity);
-	
+	InviteCode findTopByInviteeIdIsNullAndCodeAndPeriodOfValidityGreaterThanEqual(String code, Date periodOfValidity);
 
 }

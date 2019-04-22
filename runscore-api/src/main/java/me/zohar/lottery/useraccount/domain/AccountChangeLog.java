@@ -218,4 +218,23 @@ public class AccountChangeLog {
 		return log;
 	}
 
+	/**
+	 * 构建手工调整保证金日志
+	 * 
+	 * @param userAccount
+	 * @param platformOrder
+	 * @return
+	 */
+	public static AccountChangeLog buildWithHandworkAdjustCashDeposit(UserAccount userAccount,
+			Double accountChangeAmount) {
+		AccountChangeLog log = new AccountChangeLog();
+		log.setId(IdUtils.getId());
+		log.setAccountChangeTime(new Date());
+		log.setAccountChangeTypeCode(accountChangeAmount > 0 ? Constant.账变日志类型_手工增保证金 : Constant.账变日志类型_手工减保证金);
+		log.setAccountChangeAmount(accountChangeAmount);
+		log.setCashDeposit(userAccount.getCashDeposit());
+		log.setUserAccountId(userAccount.getId());
+		return log;
+	}
+
 }
