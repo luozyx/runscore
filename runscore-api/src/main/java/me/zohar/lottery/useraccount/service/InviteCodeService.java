@@ -43,7 +43,7 @@ public class InviteCodeService {
 	private InviteRegisterSettingRepo inviteRegisterSettingRepo;
 
 	@Transactional(readOnly = true)
-	public PageResult<InviteCodeVO> findUserAccountDetailsInfoByPage(InviteCodeQueryCondParam param) {
+	public PageResult<InviteCodeVO> findInviteCodeByPage(InviteCodeQueryCondParam param) {
 		Specification<InviteCode> spec = new Specification<InviteCode>() {
 			/**
 			 * 

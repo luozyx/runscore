@@ -140,6 +140,16 @@ public class PageController {
 	public String gatheringCode() {
 		return "gathering-code";
 	}
+	
+	/**
+	 * 邀请码
+	 * 
+	 * @return
+	 */
+	@GetMapping("/invite-code")
+	public String inviteCode() {
+		return "invite-code";
+	}
 
 
 }
