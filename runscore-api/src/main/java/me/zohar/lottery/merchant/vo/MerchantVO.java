@@ -16,9 +16,14 @@ import me.zohar.lottery.merchant.domain.Merchant;
 public class MerchantVO {
 
 	private String id;
+	
+	/**
+	 * 商户号
+	 */
+	private String merchantNum;
 
 	/**
-	 * 接入平台名称
+	 * 商户名称
 	 */
 	private String name;
 
@@ -30,23 +35,28 @@ public class MerchantVO {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date createTime;
 
-	public static List<MerchantVO> convertFor(List<Merchant> platforms) {
-		if (CollectionUtil.isEmpty(platforms)) {
+	private String relevanceAccountUserName;
+
+	public static List<MerchantVO> convertFor(List<Merchant> merchants) {
+		if (CollectionUtil.isEmpty(merchants)) {
 			return new ArrayList<>();
 		}
 		List<MerchantVO> vos = new ArrayList<>();
-		for (Merchant platform : platforms) {
-			vos.add(convertFor(platform));
+		for (Merchant merchant : merchants) {
+			vos.add(convertFor(merchant));
 		}
 		return vos;
 	}
 
-	public static MerchantVO convertFor(Merchant platform) {
-		if (platform == null) {
+	public static MerchantVO convertFor(Merchant merchant) {
+		if (merchant == null) {
 			return null;
 		}
 		MerchantVO vo = new MerchantVO();
-		BeanUtils.copyProperties(platform, vo);
+		BeanUtils.copyProperties(merchant, vo);
+		if (merchant.getRelevanceAccount() != null) {
+			vo.setRelevanceAccountUserName(merchant.getRelevanceAccount().getUserName());
+		}
 		return vo;
 	}
 

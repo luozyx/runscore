@@ -14,11 +14,18 @@ import me.zohar.lottery.merchant.domain.Merchant;
 public class AddOrUpdateMerchantParam {
 
 	private String id;
+	
+	@NotBlank
+	private String merchantNum;
 
+	@NotBlank
 	private String name;
 
 	@NotBlank
 	private String secretKey;
+	
+	@NotBlank
+	private String relevanceAccountUserName;
 
 	public Merchant convertToPo() {
 		Merchant po = new Merchant();

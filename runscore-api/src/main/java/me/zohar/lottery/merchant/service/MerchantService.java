@@ -19,19 +19,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import cn.hutool.core.util.StrUtil;
+import me.zohar.lottery.common.exception.BizError;
+import me.zohar.lottery.common.exception.BizException;
 import me.zohar.lottery.common.valid.ParamValid;
 import me.zohar.lottery.common.vo.PageResult;
+import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.merchant.domain.Merchant;
 import me.zohar.lottery.merchant.param.AddOrUpdateMerchantParam;
 import me.zohar.lottery.merchant.param.MerchantQueryCondParam;
 import me.zohar.lottery.merchant.repo.MerchantRepo;
 import me.zohar.lottery.merchant.vo.MerchantVO;
+import me.zohar.lottery.useraccount.domain.UserAccount;
+import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 
 @Service
 public class MerchantService {
 
 	@Autowired
 	private MerchantRepo merchantRepo;
+
+	@Autowired
+	private UserAccountRepo userAccountRepo;
 
 	@Transactional(readOnly = true)
 	public MerchantVO findPlatformById(@NotBlank String id) {
@@ -46,15 +54,36 @@ public class MerchantService {
 	@ParamValid
 	@Transactional
 	public void addOrUpdateMerchant(AddOrUpdateMerchantParam param) {
+		Merchant merchantWithMerchantNum = merchantRepo.findByMerchantNum(param.getMerchantNum());
+		if (merchantWithMerchantNum != null && !merchantWithMerchantNum.getId().equals(param.getId())) {
+			throw new BizException(BizError.商户号已使用);
+		}
+		Merchant merchantWithName = merchantRepo.findByName(param.getName());
+		if (merchantWithName != null && !merchantWithName.getId().equals(param.getId())) {
+			throw new BizException(BizError.商户名称已使用);
+		}
+		UserAccount relevanceAccount = userAccountRepo.findByUserName(param.getRelevanceAccountUserName());
+		if (relevanceAccount == null) {
+			throw new BizException(BizError.关联账号不存在);
+		}
+		if (!Constant.账号类型_商户.equals(relevanceAccount.getAccountType())) {
+			throw new BizException(BizError.只能关联商户类型的账号);
+		}
+		Merchant relevanceMerchant = merchantRepo.findByRelevanceAccountId(relevanceAccount.getId());
+		if (relevanceMerchant != null && !relevanceMerchant.getId().equals(param.getId())) {
+			throw new BizException(BizError.账号已关联其他商户);
+		}
 		// 新增
 		if (StrUtil.isBlank(param.getId())) {
-			Merchant platform = param.convertToPo();
-			merchantRepo.save(platform);
+			Merchant merchant = param.convertToPo();
+			merchant.setRelevanceAccountId(relevanceAccount.getId());
+			merchantRepo.save(merchant);
 		}
 		// 修改
 		else {
 			Merchant merchant = merchantRepo.getOne(param.getId());
 			BeanUtils.copyProperties(param, merchant);
+			merchant.setRelevanceAccountId(relevanceAccount.getId());
 			merchantRepo.save(merchant);
 		}
 	}

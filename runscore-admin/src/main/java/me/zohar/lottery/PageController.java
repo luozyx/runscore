@@ -100,7 +100,7 @@ public class PageController {
 	public String masterControlRoom() {
 		return "master-control-room";
 	}
-	
+
 	/**
 	 * 平台订单
 	 * 
@@ -110,7 +110,7 @@ public class PageController {
 	public String platformOrder() {
 		return "platform-order";
 	}
-	
+
 	/**
 	 * 接入商家
 	 * 
@@ -120,7 +120,7 @@ public class PageController {
 	public String merchant() {
 		return "merchant";
 	}
-	
+
 	/**
 	 * 统计分析
 	 * 
@@ -130,7 +130,7 @@ public class PageController {
 	public String statisticalAnalysis() {
 		return "statistical-analysis";
 	}
-	
+
 	/**
 	 * 收款码
 	 * 
@@ -140,7 +140,7 @@ public class PageController {
 	public String gatheringCode() {
 		return "gathering-code";
 	}
-	
+
 	/**
 	 * 邀请码
 	 * 
@@ -151,5 +151,14 @@ public class PageController {
 		return "invite-code";
 	}
 
+	/**
+	 * 申诉记录
+	 * 
+	 * @return
+	 */
+	@GetMapping("/appeal")
+	public String appeal() {
+		return "appeal";
+	}
 
 }

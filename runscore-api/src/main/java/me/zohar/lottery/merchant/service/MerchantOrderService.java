@@ -92,7 +92,7 @@ public class MerchantOrderService {
 		MerchantOrder order = merchantOrderRepo.findById(orderId).orElse(null);
 		if (order == null) {
 			log.error("商家订单不存在;secretKey:{},orderId:{}", secretKey, orderId);
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!order.getMerchantId().equals(merchant.getId())) {
 			log.error("无权更新商家订单状态为平台已确认支付;secretKey:{},orderId:{}", secretKey, orderId);
@@ -114,7 +114,7 @@ public class MerchantOrderService {
 		MerchantOrder order = merchantOrderRepo.findById(orderId).orElse(null);
 		if (order == null) {
 			log.error("平台订单不存在;secretKey:{},orderId:{}", secretKey, orderId);
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!order.getMerchantId().equals(platform.getId())) {
 			log.error("无权获取商家订单收款码信息;secretKey:{},orderId:{}", secretKey, orderId);
@@ -149,7 +149,7 @@ public class MerchantOrderService {
 	public void userConfirmToPaid(@NotBlank String userAccountId, @NotBlank String orderId) {
 		MerchantOrder platformOrder = merchantOrderRepo.findByIdAndReceivedAccountId(orderId, userAccountId);
 		if (platformOrder == null) {
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		confirmToPaidInner(orderId, null);
 	}
@@ -168,7 +168,7 @@ public class MerchantOrderService {
 	public void confirmToPaidInner(@NotBlank String orderId, String note) {
 		MerchantOrder platformOrder = merchantOrderRepo.findById(orderId).orElse(null);
 		if (platformOrder == null) {
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
 				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState())
@@ -299,7 +299,7 @@ public class MerchantOrderService {
 		}
 		MerchantOrder platformOrder = merchantOrderRepo.getOne(orderId);
 		if (platformOrder == null) {
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.订单已被接或已取消);
@@ -442,7 +442,7 @@ public class MerchantOrderService {
 	public void applyCancelOrder(@NotBlank String userAccountId, @NotBlank String orderId) {
 		MerchantOrder platformOrder = merchantOrderRepo.findById(orderId).orElse(null);
 		if (platformOrder == null) {
-			throw new BizException(BizError.平台订单不存在);
+			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
 				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState()))) {

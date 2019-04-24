@@ -115,5 +115,15 @@ public class PageController {
 	public String receiveOrderRecord() {
 		return "receive-order-record";
 	}
-
+	
+	/**
+	 * 申诉记录
+	 * 
+	 * @return
+	 */
+	@GetMapping("/appeal-record")
+	public String appealRecord() {
+		return "appeal-record";
+	}
+	
 }

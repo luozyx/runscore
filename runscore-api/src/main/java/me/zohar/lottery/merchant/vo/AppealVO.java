@@ -1,0 +1,110 @@
+package me.zohar.lottery.merchant.vo;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.BeanUtils;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.Data;
+import me.zohar.lottery.dictconfig.DictHolder;
+import me.zohar.lottery.merchant.domain.Appeal;
+
+@Data
+public class AppealVO {
+
+	private String id;
+
+	/**
+	 * 申诉类型
+	 */
+	private String appealType;
+
+	private String appealTypeName;
+
+	/**
+	 * 实际支付金额
+	 */
+	private Double actualPayAmount;
+
+	private List<String> userSreenshotIds = new ArrayList<>();
+
+	private String state;
+
+	private String stateName;
+
+	/**
+	 * 发起时间
+	 */
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+	private Date initiationTime;
+
+	private String orderNo;
+
+	private String merchantName;
+
+	private String gatheringChannelName;
+
+	/**
+	 * 收款金额
+	 */
+	private Double gatheringAmount;
+
+	/**
+	 * 接单人用户名
+	 */
+	private String receiverUserName;
+
+	/**
+	 * 接单时间
+	 */
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+	private Date receivedTime;
+
+	public static List<AppealVO> convertFor(List<Appeal> appeals) {
+		if (CollectionUtil.isEmpty(appeals)) {
+			return new ArrayList<>();
+		}
+		List<AppealVO> vos = new ArrayList<>();
+		for (Appeal appeal : appeals) {
+			vos.add(convertFor(appeal));
+		}
+		return vos;
+	}
+
+	public static AppealVO convertFor(Appeal appeal) {
+		if (appeal == null) {
+			return null;
+		}
+		AppealVO vo = new AppealVO();
+		BeanUtils.copyProperties(appeal, vo);
+		vo.setStateName(DictHolder.getDictItemName("appealState", vo.getState()));
+		vo.setAppealTypeName(DictHolder.getDictItemName("appealType", vo.getAppealType()));
+		if (StrUtil.isNotBlank(appeal.getUserSreenshotIds())) {
+			vo.setUserSreenshotIds(Arrays.asList(appeal.getUserSreenshotIds().split(",")));
+		}
+
+		if (appeal.getMerchantOrder() != null) {
+			vo.setOrderNo(appeal.getMerchantOrder().getOrderNo());
+			vo.setGatheringChannelName(DictHolder.getDictItemName("gatheringChannel",
+					appeal.getMerchantOrder().getGatheringChannelCode()));
+			vo.setGatheringAmount(appeal.getMerchantOrder().getGatheringAmount());
+			if (appeal.getMerchantOrder().getMerchant() != null) {
+				vo.setMerchantName(appeal.getMerchantOrder().getMerchant().getName());
+			}
+
+			if (StrUtil.isNotBlank(appeal.getMerchantOrder().getReceivedAccountId())
+					&& appeal.getMerchantOrder().getUserAccount() != null) {
+				vo.setReceiverUserName(appeal.getMerchantOrder().getUserAccount().getUserName());
+			}
+			vo.setReceivedTime(appeal.getMerchantOrder().getReceivedTime());
+		}
+		return vo;
+	}
+
+}

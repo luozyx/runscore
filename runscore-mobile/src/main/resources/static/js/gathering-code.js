@@ -31,7 +31,7 @@ var gatheringCodeVM = new Vue({
 		that.loadGatheringCodeByPage();
 
 		$('.gathering-code-pic').on('fileuploaded', function(event, data, previewId, index) {
-			that.editGatheringCode.storageId = data.response.data;
+			that.editGatheringCode.storageId = data.response.data.join(',');
 			that.addOrUpdateGatheringCodeInner();
 		});
 	},
@@ -114,7 +114,7 @@ var gatheringCodeVM = new Vue({
 					footer : ''
 				},
 				maxFileCount : 1,
-				uploadUrl : '/storage/uploadGatheringCode',
+				uploadUrl : '/storage/uploadPic',
 				enctype : 'multipart/form-data',
 				allowedFileExtensions : [ 'jpg', 'png', 'bmp', 'jpeg' ],
 				initialPreview : initialPreview,

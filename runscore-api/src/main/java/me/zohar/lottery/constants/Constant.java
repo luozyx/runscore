@@ -2,6 +2,14 @@ package me.zohar.lottery.constants;
 
 public class Constant {
 	
+	public static final String 申诉类型_未支付申请取消订单 = "1";
+	
+	public static final String 申诉类型_实际支付金额小于收款金额 = "2";
+	
+	public static final String 申诉状态_待处理 = "1";
+	
+	public static final String 申诉状态_用户撤销申诉 = "2";
+	
 	public static final String 接单状态_正在接单 = "1";
 	
 	public static final String 接单状态_停止接单 = "2";
@@ -28,6 +36,8 @@ public class Constant {
 
 	public static final String 账号类型_会员 = "member";
 
+	public static final String 账号类型_商户 = "merchant";
+	
 	public static final String 账号状态_启用 = "1";
 
 	public static final String 账号状态_禁用 = "2";

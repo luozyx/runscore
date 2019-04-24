@@ -50,6 +50,12 @@ public class MyWaitConfirmOrderVO {
 	private String orderState;
 
 	private String orderStateName;
+	
+	/**
+	 * 接单时间
+	 */
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+	private Date receivedTime;
 
 	public static List<MyWaitConfirmOrderVO> convertFor(List<MerchantOrder> platformOrders) {
 		if (CollectionUtil.isEmpty(platformOrders)) {

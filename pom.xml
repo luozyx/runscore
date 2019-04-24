@@ -25,5 +25,6 @@
 		<module>runscore-task</module>
 		<module>runscore-mobile</module>
 		<module>runscore-admin</module>
+		<module>runscore-merchant</module>
 	</modules>
 </project>

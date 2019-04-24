@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="utf-8">
-<title>接入商户</title>
+<title>商户管理</title>
 <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
 <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
@@ -48,12 +48,23 @@
 								<form>
 									<div class="form-group row">
 										<div class="col-sm-12">
+											<label>商户号:</label> <input type="text" class="form-control" v-model="editPlatform.merchantNum">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
 											<label>商户名称:</label> <input type="text" class="form-control" v-model="editPlatform.name">
 										</div>
 									</div>
 									<div class="form-group row">
 										<div class="col-sm-12">
-											<label>接入密钥:</label> <input type="text" class="form-control" v-model="editPlatform.secretKey">
+											<label>接入密钥:</label>
+											<textarea class="form-control" rows="" cols="" v-model="editPlatform.secretKey"></textarea>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>关联账号:</label> <input type="text" class="form-control" v-model="editPlatform.relevanceAccountUserName">
 										</div>
 									</div>
 								</form>

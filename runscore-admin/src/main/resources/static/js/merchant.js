@@ -41,6 +41,9 @@ var platformVM = new Vue({
 					};
 				},
 				columns : [ {
+					field : 'merchantNum',
+					title : '商户号'
+				}, {
 					field : 'name',
 					title : '商户名称'
 				}, {
@@ -49,6 +52,9 @@ var platformVM = new Vue({
 				}, {
 					field : 'createTime',
 					title : '接入时间'
+				}, {
+					field : 'relevanceAccountUserName',
+					title : '关联账号'
 				}, {
 					title : '操作',
 					formatter : function(value, row, index) {
@@ -75,8 +81,10 @@ var platformVM = new Vue({
 			this.addOrUpdatePlatformFlag = true;
 			this.platformActionTitle = '新增商户';
 			this.editPlatform = {
+				merchantNum : '',
 				name : '',
-				secretKey : ''
+				secretKey : '',
+				relevanceAccountUserName : ''
 			}
 		},
 
@@ -96,6 +104,14 @@ var platformVM = new Vue({
 		addOrUpdatePlatform : function() {
 			var that = this;
 			var editPlatform = that.editPlatform;
+			if (editPlatform.merchantNum == null || editPlatform.merchantNum == '') {
+				layer.alert('请输入商家号', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
 			if (editPlatform.name == null || editPlatform.name == '') {
 				layer.alert('请输入商家名称', {
 					title : '提示',
@@ -106,6 +122,14 @@ var platformVM = new Vue({
 			}
 			if (editPlatform.secretKey == null || editPlatform.secretKey == '') {
 				layer.alert('请输入接入密钥', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			if (editPlatform.relevanceAccountUserName == null || editPlatform.relevanceAccountUserName == '') {
+				layer.alert('请输入关联账号', {
 					title : '提示',
 					icon : 7,
 					time : 3000

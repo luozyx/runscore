@@ -1,6 +1,8 @@
 package me.zohar.lottery.storage.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import cn.hutool.core.util.ArrayUtil;
 import me.zohar.lottery.common.vo.Result;
 import me.zohar.lottery.storage.service.StorageService;
 import me.zohar.lottery.storage.vo.StorageVO;
@@ -42,12 +45,20 @@ public class StorageController {
 		return ResponseEntity.ok().contentType(mediaType).body(file);
 	}
 
-	@PostMapping("/uploadGatheringCode")
+	@PostMapping("/uploadPic")
 	@ResponseBody
-	public Result uploadGatheringCode(@RequestParam("file_data") MultipartFile file) throws IOException {
-		String filename = file.getOriginalFilename();
-		String storageId = storageService.uploadGatheringCode(file.getInputStream(), file.getSize(), file.getContentType(), filename);
-		return Result.success().setData(storageId);
+	public Result uploadPic(@RequestParam("file_data") MultipartFile[] files) throws IOException {
+		if (ArrayUtil.isEmpty(files)) {
+			return Result.fail("请选择要上传的图片");
+		}
+		List<String> storageIds = new ArrayList<>();
+		for (MultipartFile file : files) {
+			String filename = file.getOriginalFilename();
+			String storageId = storageService.uploadGatheringCode(file.getInputStream(), file.getSize(),
+					file.getContentType(), filename);
+			storageIds.add(storageId);
+		}
+		return Result.success().setData(storageIds);
 	}
 
 }
