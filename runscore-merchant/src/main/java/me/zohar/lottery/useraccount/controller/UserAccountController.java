@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import me.zohar.lottery.common.vo.Result;
-import me.zohar.lottery.config.security.UserAccountDetails;
+import me.zohar.lottery.config.security.MerchantAccountDetails;
 import me.zohar.lottery.useraccount.param.AccountChangeLogQueryCondParam;
 import me.zohar.lottery.useraccount.param.AddUserAccountParam;
 import me.zohar.lottery.useraccount.param.AdjustCashDepositParam;
@@ -85,7 +85,7 @@ public class UserAccountController {
 		if ("anonymousUser".equals(principal)) {
 			return Result.success();
 		}
-		UserAccountDetails user = (UserAccountDetails) principal;
+		MerchantAccountDetails user = (MerchantAccountDetails) principal;
 		UserAccountInfoVO userAccountInfo = userAccountService.getUserAccountInfo(user.getUserAccountId());
 		return Result.success().setData(userAccountInfo);
 	}

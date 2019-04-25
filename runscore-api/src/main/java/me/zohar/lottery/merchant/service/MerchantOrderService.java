@@ -377,7 +377,7 @@ public class MerchantOrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResult<PlatformOrderVO> findPlatformOrderByPage(PlatformOrderQueryCondParam param) {
+	public PageResult<PlatformOrderVO> findMerchantOrderByPage(PlatformOrderQueryCondParam param) {
 		Specification<MerchantOrder> spec = new Specification<MerchantOrder>() {
 			/**
 			 * 
@@ -392,7 +392,7 @@ public class MerchantOrderService {
 
 				if (StrUtil.isNotBlank(param.getPlatformName())) {
 					predicates.add(
-							builder.equal(root.join("platform", JoinType.INNER).get("name"), param.getPlatformName()));
+							builder.equal(root.join("merchant", JoinType.INNER).get("name"), param.getPlatformName()));
 				}
 				if (StrUtil.isNotBlank(param.getGatheringChannelCode())) {
 					predicates.add(builder.equal(root.get("gatheringChannelCode"), param.getGatheringChannelCode()));
@@ -431,9 +431,25 @@ public class MerchantOrderService {
 	public void cancelOrder(@NotBlank String id) {
 		MerchantOrder platformOrder = merchantOrderRepo.getOne(id);
 		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
-			throw new BizException(BizError.只有等待接单状态的平台订单才能取消);
+			throw new BizException(BizError.只有等待接单状态的商户订单才能取消);
 		}
 		platformOrder.setOrderState(Constant.商户订单状态_人工取消);
+		platformOrder.setDealTime(new Date());
+		merchantOrderRepo.save(platformOrder);
+	}
+	
+	/**
+	 * 商户取消订单
+	 * 
+	 * @param id
+	 */
+	@Transactional
+	public void merchatCancelOrder(@NotBlank String id) {
+		MerchantOrder platformOrder = merchantOrderRepo.getOne(id);
+		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
+			throw new BizException(BizError.只有等待接单状态的商户订单才能取消);
+		}
+		platformOrder.setOrderState(Constant.商户订单状态_商户取消订单);
 		platformOrder.setDealTime(new Date());
 		merchantOrderRepo.save(platformOrder);
 	}

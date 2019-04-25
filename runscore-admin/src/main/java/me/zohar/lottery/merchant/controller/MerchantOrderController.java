@@ -20,7 +20,7 @@ public class MerchantOrderController {
 	@GetMapping("/findPlatformOrderByPage")
 	@ResponseBody
 	public Result findPlatformOrderByPage(PlatformOrderQueryCondParam param) {
-		return Result.success().setData(platformOrderService.findPlatformOrderByPage(param));
+		return Result.success().setData(platformOrderService.findMerchantOrderByPage(param));
 	}
 
 	@GetMapping("/cancelOrder")

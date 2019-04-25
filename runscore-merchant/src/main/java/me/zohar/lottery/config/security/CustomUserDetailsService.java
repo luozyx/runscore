@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.zohar.lottery.constants.Constant;
+import me.zohar.lottery.merchant.service.MerchantService;
+import me.zohar.lottery.merchant.vo.MerchantVO;
 import me.zohar.lottery.useraccount.service.UserAccountService;
 import me.zohar.lottery.useraccount.vo.LoginAccountInfoVO;
 
@@ -26,6 +28,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 	@Autowired
 	private UserAccountService userAccountService;
 
+	@Autowired
+	private MerchantService merchantService;
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		LoginAccountInfoVO loginAccountInfo = userAccountService.getLoginAccountInfo(username);
@@ -37,12 +42,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 			log.warn("账号已被禁用:{}", username);
 			throw new AuthenticationServiceException("账号已被禁用");
 		}
-		if (!Constant.账号类型_管理员.equals(loginAccountInfo.getAccountType())) {
-			log.warn("该账号不是管理员,无法登陆到后台:{}", username);
-			throw new AuthenticationServiceException("该账号不是管理员,无法登陆到后台");
+		if (!Constant.账号类型_商户.equals(loginAccountInfo.getAccountType())) {
+			log.warn("该账号不是商户,无法登陆到商户端:{}", username);
+			throw new AuthenticationServiceException("该账号不是商户,无法登陆到商户端");
+		}
+		MerchantVO merchant = merchantService.findMerchantByRelevanceAccountId(loginAccountInfo.getId());
+		if (merchant == null) {
+			log.warn("该账号未开通商户资格:{}", username);
+			throw new AuthenticationServiceException("该账号未开通商户资格,无法登陆到商户端");
 		}
 
-		return new UserAccountDetails(loginAccountInfo);
+		return new MerchantAccountDetails(loginAccountInfo, merchant);
 	}
 
 }

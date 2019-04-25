@@ -57,7 +57,7 @@ var platformOrderVM = new Vue({
 			$('.platform-order-table').bootstrapTable({
 				classes : 'table table-hover',
 				height : 490,
-				url : '/platformOrder/findPlatformOrderByPage',
+				url : '/merchantOrder/findMerchantOrderByPage',
 				pagination : true,
 				sidePagination : 'server',
 				pageNumber : 1,
@@ -94,9 +94,6 @@ var platformOrderVM = new Vue({
 				columns : [ {
 					field : 'orderNo',
 					title : '订单号'
-				}, {
-					field : 'platformName',
-					title : '接入商户'
 				}, {
 					field : 'orderStateName',
 					title : '订单状态'

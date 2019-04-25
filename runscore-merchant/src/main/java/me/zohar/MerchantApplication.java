@@ -11,10 +11,10 @@ import com.alicp.jetcache.anno.config.EnableMethodCache;
 @SpringBootApplication
 @EnableMethodCache(basePackages = "me.zohar.lottery")
 @EnableCreateCacheAnnotation
-public class AdminApplication implements ApplicationRunner {
+public class MerchantApplication implements ApplicationRunner {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AdminApplication.class, args);
+		SpringApplication.run(MerchantApplication.class, args);
 	}
 
 	@Override

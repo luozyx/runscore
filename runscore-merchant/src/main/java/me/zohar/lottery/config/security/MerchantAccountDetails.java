@@ -5,9 +5,10 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import me.zohar.lottery.merchant.vo.MerchantVO;
 import me.zohar.lottery.useraccount.vo.LoginAccountInfoVO;
 
-public class UserAccountDetails implements UserDetails {
+public class MerchantAccountDetails implements UserDetails {
 
 	/**
 	 * 
@@ -20,11 +21,19 @@ public class UserAccountDetails implements UserDetails {
 
 	private String loginPwd;
 
-	public UserAccountDetails(LoginAccountInfoVO loginAccountInfo) {
+	private String merchantId;
+
+	private String merchantName;
+
+	public MerchantAccountDetails(LoginAccountInfoVO loginAccountInfo, MerchantVO merchant) {
 		if (loginAccountInfo != null) {
 			this.id = loginAccountInfo.getId();
 			this.userName = loginAccountInfo.getUserName();
 			this.loginPwd = loginAccountInfo.getLoginPwd();
+		}
+		if (merchant != null) {
+			this.merchantId = merchant.getId();
+			this.merchantName = merchant.getName();
 		}
 	}
 
@@ -35,6 +44,24 @@ public class UserAccountDetails implements UserDetails {
 	 */
 	public String getUserAccountId() {
 		return this.id;
+	}
+
+	/**
+	 * 获取登陆用户账号商户id
+	 * 
+	 * @return
+	 */
+	public String getMerchantId() {
+		return this.merchantId;
+	}
+
+	/**
+	 * 获取登陆用户账号商户名
+	 * 
+	 * @return
+	 */
+	public String getMerchantName() {
+		return this.merchantName;
 	}
 
 	@Override

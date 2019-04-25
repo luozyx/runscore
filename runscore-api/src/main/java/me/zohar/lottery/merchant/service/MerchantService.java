@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import cn.hutool.core.util.StrUtil;
 import me.zohar.lottery.common.exception.BizError;
@@ -32,6 +33,7 @@ import me.zohar.lottery.merchant.vo.MerchantVO;
 import me.zohar.lottery.useraccount.domain.UserAccount;
 import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 
+@Validated
 @Service
 public class MerchantService {
 
@@ -41,6 +43,11 @@ public class MerchantService {
 	@Autowired
 	private UserAccountRepo userAccountRepo;
 
+	@Transactional(readOnly = true)
+	public MerchantVO findMerchantByRelevanceAccountId(@NotBlank String relevanceAccountId) {
+		return MerchantVO.convertFor(merchantRepo.findByRelevanceAccountId(relevanceAccountId));
+	}
+	
 	@Transactional(readOnly = true)
 	public MerchantVO findPlatformById(@NotBlank String id) {
 		return MerchantVO.convertFor(merchantRepo.getOne(id));
