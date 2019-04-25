@@ -29,19 +29,5 @@ public class MerchantOrderController {
 		platformOrderService.cancelOrder(id);
 		return Result.success();
 	}
-	
-	@GetMapping("/customerServiceConfirmToPaid")
-	@ResponseBody
-	public Result customerServiceConfirmToPaid(String id, String note) {
-		platformOrderService.customerServiceConfirmToPaid(id, note);
-		return Result.success();
-	}
-
-	@GetMapping("/unpaidCancelOrder")
-	@ResponseBody
-	public Result unpaidCancelOrder(String id, String note) {
-		platformOrderService.unpaidCancelOrder(id, note);
-		return Result.success();
-	}
 
 }

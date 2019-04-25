@@ -26,6 +26,13 @@ public class AppealVO {
 	private String appealType;
 
 	private String appealTypeName;
+	
+	/**
+	 * 处理方式
+	 */
+	private String processWay;
+	
+	private String processWayName;
 
 	/**
 	 * 实际支付金额
@@ -33,6 +40,8 @@ public class AppealVO {
 	private Double actualPayAmount;
 
 	private List<String> userSreenshotIds = new ArrayList<>();
+
+	private List<String> merchantSreenshotIds = new ArrayList<>();
 
 	private String state;
 
@@ -85,8 +94,12 @@ public class AppealVO {
 		BeanUtils.copyProperties(appeal, vo);
 		vo.setStateName(DictHolder.getDictItemName("appealState", vo.getState()));
 		vo.setAppealTypeName(DictHolder.getDictItemName("appealType", vo.getAppealType()));
+		vo.setProcessWayName(DictHolder.getDictItemName("appealProcessWay", vo.getProcessWay()));
 		if (StrUtil.isNotBlank(appeal.getUserSreenshotIds())) {
 			vo.setUserSreenshotIds(Arrays.asList(appeal.getUserSreenshotIds().split(",")));
+		}
+		if (StrUtil.isNotBlank(appeal.getMerchantSreenshotIds())) {
+			vo.setMerchantSreenshotIds(Arrays.asList(appeal.getMerchantSreenshotIds().split(",")));
 		}
 
 		if (appeal.getMerchantOrder() != null) {

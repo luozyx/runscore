@@ -13,9 +13,30 @@ import me.zohar.lottery.merchant.service.AppealService;
 @Controller
 @RequestMapping("/appeal")
 public class AppealController {
-	
+
 	@Autowired
 	private AppealService appealService;
+
+	@GetMapping("/dontProcess")
+	@ResponseBody
+	public Result dontProcess(String appealId) {
+		appealService.dontProcess(appealId);
+		return Result.success();
+	}
+	
+	@GetMapping("/cancelOrder")
+	@ResponseBody
+	public Result cancelOrder(String appealId) {
+		appealService.cancelOrder(appealId);
+		return Result.success();
+	}
+	
+	@GetMapping("/alterToActualPayAmount")
+	@ResponseBody
+	public Result alterToActualPayAmount(String appealId) {
+		appealService.alterToActualPayAmount(appealId);
+		return Result.success();
+	}
 
 	@GetMapping("/findAppealByPage")
 	@ResponseBody

@@ -1,5 +1,5 @@
-var appealVM = new Vue({
-	el : '#appeal',
+var appealRecordVM = new Vue({
+	el : '#appeal-record',
 	data : {
 		orderNo : '',
 		merchantName : '',
@@ -10,12 +10,13 @@ var appealVM = new Vue({
 		appealTypeDictItems : [],
 		appealState : '',
 		appealStateDictItems : [],
+		appealProcessWay : '',
+		appealProcessWayDictItems : [],
 		initiationStartTime : dayjs().format('YYYY-MM-DD'),
 		initiationEndTime : dayjs().format('YYYY-MM-DD'),
 
-		auditPlatformOrderFlag : false,
-		auditPlatformOrder : '',
-		auditNote : '',
+		showAppealRecordFlag : true,
+		selectAppeal : {}
 	},
 	computed : {},
 	created : function() {
@@ -24,6 +25,7 @@ var appealVM = new Vue({
 		this.loadGatheringChannelDictItem();
 		this.loadAppealTypeDictItem();
 		this.loadAppealStateDictItem();
+		this.loadAppealProcessWayDictItem();
 		this.initTable();
 	},
 	methods : {
@@ -62,10 +64,21 @@ var appealVM = new Vue({
 				this.appealStateDictItems = res.body.data;
 			});
 		},
+		
+		loadAppealProcessWayDictItem : function() {
+			var that = this;
+			that.$http.get('/dictconfig/findDictItemInCache', {
+				params : {
+					dictTypeCode : 'appealProcessWay'
+				}
+			}).then(function(res) {
+				this.appealProcessWayDictItems = res.body.data;
+			});
+		},
 
 		initTable : function() {
 			var that = this;
-			$('.appeal-table').bootstrapTable({
+			$('.appeal-record-table').bootstrapTable({
 				classes : 'table table-hover',
 				height : 490,
 				url : '/appeal/findAppealByPage',
@@ -85,6 +98,7 @@ var appealVM = new Vue({
 						receiverUserName : that.receiverUserName,
 						appealType : that.appealType,
 						appealState : that.appealState,
+						appealProcessWay : that.appealProcessWay,
 						initiationStartTime : that.initiationStartTime,
 						initiationEndTime : that.initiationEndTime
 					};
@@ -124,6 +138,9 @@ var appealVM = new Vue({
 					field : 'stateName',
 					title : '状态'
 				}, {
+					field : 'processWayName',
+					title : '处理方式'
+				}, {
 					field : 'initiationTime',
 					title : '发起时间'
 				}, {
@@ -131,11 +148,13 @@ var appealVM = new Vue({
 					formatter : function(value, row, index) {
 						if (row.state == '1') {
 							return [ '<button type="button" class="deal-btn btn btn-outline-danger btn-sm">马上处理</button>' ].join('');
+						}else if (row.state == '2') {
+							return [ '<button type="button" class="deal-btn btn btn-outline-info btn-sm">查看详情</button>' ].join('');
 						}
 					},
 					events : {
 						'click .deal-btn' : function(event, value, row, index) {
-							that.cancelOrder(row.id);
+							that.showViewDetailsPage(row);
 						}
 					}
 				} ]
@@ -143,49 +162,25 @@ var appealVM = new Vue({
 		},
 
 		refreshTable : function() {
-			$('.appeal-table').bootstrapTable('refreshOptions', {
+			$('.appeal-record-table').bootstrapTable('refreshOptions', {
 				pageNumber : 1
 			});
 		},
 
-		cancelOrder : function(id) {
-			var that = this;
-			layer.confirm('确定要取消订单吗?', {
-				icon : 7,
-				title : '提示'
-			}, function(index) {
-				layer.close(index);
-				that.$http.get('/platformOrder/cancelOrder', {
-					params : {
-						id : id
-					}
-				}).then(function(res) {
-					layer.alert('操作成功!', {
-						icon : 1,
-						time : 3000,
-						shade : false
-					});
-					that.refreshTable();
-				});
-			});
+		showAppealRecordPage : function() {
+			this.showAppealRecordFlag = true;
 		},
 
-		showAuditOrderModal : function(platformOrder) {
-			this.auditPlatformOrderFlag = true;
-			this.auditPlatformOrder = platformOrder;
-			this.auditNote = '';
+		showViewDetailsPage : function(appeal) {
+			this.showAppealRecordFlag = false;
+			this.selectAppeal = appeal;
 		},
 
-		audit : function(action) {
+		dontProcess : function(appealId) {
 			var that = this;
-			var url = '/platformOrder/customerServiceConfirmToPaid';
-			if (action == 2) {
-				url = '/platformOrder/unpaidCancelOrder';
-			}
-			that.$http.get(url, {
+			that.$http.get('/appeal/dontProcess', {
 				params : {
-					id : that.auditPlatformOrder.id,
-					note : that.auditNote
+					appealId : appealId
 				}
 			}).then(function(res) {
 				layer.alert('操作成功!', {
@@ -193,9 +188,44 @@ var appealVM = new Vue({
 					time : 3000,
 					shade : false
 				});
-				this.auditPlatformOrderFlag = false;
+				that.showAppealRecordPage();
+				that.refreshTable();
+			});
+		},
+
+		cancelOrder : function(appealId) {
+			var that = this;
+			that.$http.get('/appeal/cancelOrder', {
+				params : {
+					appealId : appealId
+				}
+			}).then(function(res) {
+				layer.alert('操作成功!', {
+					icon : 1,
+					time : 3000,
+					shade : false
+				});
+				that.showAppealRecordPage();
+				that.refreshTable();
+			});
+		},
+
+		alterToActualPayAmount : function(appealId) {
+			var that = this;
+			that.$http.get('/appeal/alterToActualPayAmount', {
+				params : {
+					appealId : appealId
+				}
+			}).then(function(res) {
+				layer.alert('操作成功!', {
+					icon : 1,
+					time : 3000,
+					shade : false
+				});
+				that.showAppealRecordPage();
 				that.refreshTable();
 			});
 		}
+
 	}
 });

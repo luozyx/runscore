@@ -84,6 +84,23 @@ public class MerchantOrderService {
 	private PlatformOrderSettingRepo platformOrderSettingRepo;
 
 	@Transactional
+	public void customerCancelOrderRefund(@NotBlank String orderId) {
+		MerchantOrder merchantOrder = merchantOrderRepo.getOne(orderId);
+		if (!(Constant.商户订单状态_已接单.equals(merchantOrder.getOrderState())
+				|| Constant.商户订单状态_商户已确认支付.equals(merchantOrder.getOrderState()))) {
+			throw new BizException(BizError.只有已接单商户确认已支付的商户订单才能取消订单退款);
+		}
+		UserAccount userAccount = merchantOrder.getUserAccount();
+		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() + merchantOrder.getGatheringAmount(), 4)
+				.doubleValue();
+		userAccount.setCashDeposit(cashDeposit);
+		userAccountRepo.save(userAccount);
+		merchantOrder.customerCancelOrderRefund();
+		merchantOrderRepo.save(merchantOrder);
+		accountChangeLogRepo.save(AccountChangeLog.buildWithCustomerCancelOrderRefund(userAccount, merchantOrder));
+	}
+
+	@Transactional
 	public void merchantConfirmToPaid(@NotBlank String secretKey, @NotBlank String orderId) {
 		Merchant merchant = merchantRepo.findBySecretKey(secretKey);
 		if (merchant == null) {
@@ -171,9 +188,8 @@ public class MerchantOrderService {
 			throw new BizException(BizError.商户订单不存在);
 		}
 		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
-				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState())
-				|| Constant.商户订单状态_申请取消订单.equals(platformOrder.getOrderState()))) {
-			throw new BizException(BizError.订单状态为已接单或平台已确认支付或申请取消订单才能转为确认已支付);
+				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState()))) {
+			throw new BizException(BizError.订单状态为已接单或平台已确认支付才能转为确认已支付);
 		}
 		platformOrder.confirmToPaid(note);
 		merchantOrderRepo.save(platformOrder);
@@ -239,7 +255,7 @@ public class MerchantOrderService {
 				continue;
 			}
 			gatheringChannelCodeMap.get(gatheringCode.getGatheringChannelCode())
-			.add(gatheringCode.getGatheringAmount());
+					.add(gatheringCode.getGatheringAmount());
 		}
 		List<MerchantOrder> waitReceivingOrders = new ArrayList<>();
 		for (Entry<String, List<Double>> entry : gatheringChannelCodeMap.entrySet()) {
@@ -419,39 +435,6 @@ public class MerchantOrderService {
 		}
 		platformOrder.setOrderState(Constant.商户订单状态_人工取消);
 		platformOrder.setDealTime(new Date());
-		merchantOrderRepo.save(platformOrder);
-	}
-
-	@Transactional
-	public void unpaidCancelOrder(@NotBlank String id, String note) {
-		MerchantOrder merchantOrder = merchantOrderRepo.getOne(id);
-		if (!Constant.商户订单状态_申请取消订单.equals(merchantOrder.getOrderState())) {
-			throw new BizException(BizError.只有等待接单状态的平台订单才能取消);
-		}
-		merchantOrder.unpaidCancelOrder(note);
-		merchantOrderRepo.save(merchantOrder);
-		UserAccount userAccount = merchantOrder.getUserAccount();
-		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() + merchantOrder.getGatheringAmount(), 4)
-				.doubleValue();
-		userAccount.setCashDeposit(cashDeposit);
-		userAccountRepo.save(userAccount);
-		accountChangeLogRepo.save(AccountChangeLog.buildWithRefundCashDeposit(userAccount, merchantOrder));
-	}
-
-	@Transactional
-	public void applyCancelOrder(@NotBlank String userAccountId, @NotBlank String orderId) {
-		MerchantOrder platformOrder = merchantOrderRepo.findById(orderId).orElse(null);
-		if (platformOrder == null) {
-			throw new BizException(BizError.商户订单不存在);
-		}
-		if (!(Constant.商户订单状态_已接单.equals(platformOrder.getOrderState())
-				|| Constant.商户订单状态_商户已确认支付.equals(platformOrder.getOrderState()))) {
-			throw new BizException(BizError.订单状态为已接单或平台已确认支付才能申请取消订单);
-		}
-		if (!platformOrder.getReceivedAccountId().equals(userAccountId)) {
-			throw new BizException(BizError.无权确认订单);
-		}
-		platformOrder.setOrderState(Constant.商户订单状态_申请取消订单);
 		merchantOrderRepo.save(platformOrder);
 	}
 

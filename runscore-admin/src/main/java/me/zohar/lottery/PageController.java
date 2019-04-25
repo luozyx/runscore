@@ -156,9 +156,9 @@ public class PageController {
 	 * 
 	 * @return
 	 */
-	@GetMapping("/appeal")
-	public String appeal() {
-		return "appeal";
+	@GetMapping("/appeal-record")
+	public String appealRecord() {
+		return "appeal-record";
 	}
 
 }

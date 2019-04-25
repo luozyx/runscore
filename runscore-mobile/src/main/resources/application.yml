@@ -16,6 +16,10 @@ spring:
   redis:
     port: 6379
     host: localhost
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 redisson:
   singleServerConfig:
     address: 127.0.0.1:6379
@@ -31,5 +35,4 @@ jetcache:
       keyConvertor: fastjson
       uri: redis://127.0.0.1:6379/
 storage:
-  storagePath: storage
-#  storagePath: /home/projects/storage
+  storagePath: E:\tmp\pic

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import me.zohar.lottery.common.exception.BizError;
 import me.zohar.lottery.common.exception.BizException;
@@ -32,19 +33,95 @@ import me.zohar.lottery.merchant.domain.MerchantOrder;
 import me.zohar.lottery.merchant.param.AppealQueryCondParam;
 import me.zohar.lottery.merchant.param.UserStartAppealParam;
 import me.zohar.lottery.merchant.repo.AppealRepo;
+import me.zohar.lottery.merchant.repo.MerchantOrderRepo;
 import me.zohar.lottery.merchant.vo.AppealVO;
 import me.zohar.lottery.storage.domain.Storage;
 import me.zohar.lottery.storage.repo.StorageRepo;
+import me.zohar.lottery.useraccount.domain.AccountChangeLog;
+import me.zohar.lottery.useraccount.domain.UserAccount;
+import me.zohar.lottery.useraccount.repo.AccountChangeLogRepo;
+import me.zohar.lottery.useraccount.repo.UserAccountRepo;
 
 @Validated
 @Service
 public class AppealService {
 
 	@Autowired
+	private MerchantOrderService merchantOrderService;
+
+	@Autowired
 	private AppealRepo appealRepo;
 
 	@Autowired
 	private StorageRepo storageRepo;
+
+	@Autowired
+	private UserAccountRepo userAccountRepo;
+
+	@Autowired
+	private MerchantOrderRepo merchantOrderRepo;
+
+	@Autowired
+	private AccountChangeLogRepo accountChangeLogRepo;
+
+	@Transactional
+	public void dontProcess(@NotBlank String appealId) {
+		Appeal appeal = appealRepo.findById(appealId).orElse(null);
+		if (appeal == null) {
+			throw new BizException(BizError.参数异常);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.当前申诉已完结);
+		}
+		appeal.dontProcess();
+		appealRepo.save(appeal);
+	}
+
+	@Transactional
+	public void cancelOrder(@NotBlank String appealId) {
+		Appeal appeal = appealRepo.findById(appealId).orElse(null);
+		if (appeal == null) {
+			throw new BizException(BizError.参数异常);
+		}
+		if (!(Constant.申诉类型_未支付申请取消订单.equals(appeal.getAppealType())
+				|| Constant.申诉类型_实际支付金额小于收款金额.equals(appeal.getAppealType()))) {
+			throw new BizException(BizError.该申诉类型的处理方式不能是改为实际支付金额);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.当前申诉已完结无法更改处理方式);
+		}
+		appeal.cancelOrder();
+		appealRepo.save(appeal);
+		merchantOrderService.customerCancelOrderRefund(appeal.getMerchantOrderId());
+	}
+
+	@Transactional
+	public void alterToActualPayAmount(@NotBlank String appealId) {
+		Appeal appeal = appealRepo.findById(appealId).orElse(null);
+		if (appeal == null) {
+			throw new BizException(BizError.参数异常);
+		}
+		if (!Constant.申诉类型_实际支付金额小于收款金额.equals(appeal.getAppealType())) {
+			throw new BizException(BizError.该申诉类型的处理方式不能是改为实际支付金额);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.当前申诉已完结无法更改处理方式);
+		}
+
+		appeal.alterToActualPayAmount();
+		appealRepo.save(appeal);
+		MerchantOrder merchantOrder = appeal.getMerchantOrder();
+		UserAccount userAccount = merchantOrder.getUserAccount();
+		Double refundAmount = merchantOrder.getGatheringAmount() - appeal.getActualPayAmount();
+		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() + refundAmount, 4).doubleValue();
+		userAccount.setCashDeposit(cashDeposit);
+		userAccountRepo.save(userAccount);
+		merchantOrder.setGatheringAmount(appeal.getActualPayAmount());
+		merchantOrderRepo.save(merchantOrder);
+		accountChangeLogRepo.save(AccountChangeLog.buildWithAlterToActualPayAmountRefund(userAccount,
+				merchantOrder.getOrderNo(), refundAmount));
+		merchantOrderService.customerServiceConfirmToPaid(merchantOrder.getId(), "客服改单为实际支付金额并确认已支付");
+	}
 
 	@Transactional(readOnly = true)
 	public PageResult<AppealVO> findAppealByPage(AppealQueryCondParam param) {
@@ -78,6 +155,9 @@ public class AppealService {
 				}
 				if (StrUtil.isNotBlank(param.getAppealState())) {
 					predicates.add(builder.equal(root.get("state"), param.getAppealState()));
+				}
+				if (StrUtil.isNotBlank(param.getAppealProcessWay())) {
+					predicates.add(builder.equal(root.get("processWay"), param.getAppealProcessWay()));
 				}
 				if (param.getInitiationStartTime() != null) {
 					predicates.add(builder.greaterThanOrEqualTo(root.get("initiationTime").as(Date.class),
@@ -117,7 +197,7 @@ public class AppealService {
 		if (!merchantOrder.getReceivedAccountId().equals(userAccountId)) {
 			throw new BizException(BizError.无权撤销申诉);
 		}
-		appeal.setState(Constant.申诉状态_用户撤销申诉);
+		appeal.userCancelAppeal();
 		appealRepo.save(appeal);
 	}
 

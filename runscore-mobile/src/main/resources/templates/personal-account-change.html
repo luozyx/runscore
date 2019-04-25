@@ -69,10 +69,10 @@
 						<label>帐变时间:</label> <span>{{accountChangeLog.accountChangeTime}}</span>
 					</div>
 					<div class="account-change-body-item">
-						<label>帐变类型:</label> <span>{{accountChangeLog.accountChangeTypeName}}</span><label>帐变金额:</label> <span>{{accountChangeLog.accountChangeAmount}}元</span>
+						<label>帐变类型:</label> <span>{{accountChangeLog.accountChangeTypeName}}</span>
 					</div>
 					<div class="account-change-body-item">
-						<label>保证金:</label> <span class="account-change-body-item-highlight">{{accountChangeLog.cashDeposit}}元</span>
+						<label>帐变金额:</label> <span>{{accountChangeLog.accountChangeAmount}}元</span><label>保证金:</label> <span class="account-change-body-item-highlight">{{accountChangeLog.cashDeposit}}元</span>
 					</div>
 				</div>
 			</div>
@@ -120,12 +120,12 @@
 						this.accountChangeTypeDictItems = res.body.data;
 					});
 				},
-				
+
 				query : function() {
 					this.pageNum = 1;
 					this.loadByPage();
 				},
-				
+
 				prePage : function() {
 					this.pageNum = this.pageNum - 1;
 					this.loadByPage();

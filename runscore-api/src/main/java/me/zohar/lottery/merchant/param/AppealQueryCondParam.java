@@ -23,7 +23,8 @@ public class AppealQueryCondParam extends PageParam {
 	private String appealType;
 	
 	private String appealState;
-
+	
+	private String appealProcessWay;
 
 	/**
 	 * 发起开始时间

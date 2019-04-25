@@ -19,6 +19,7 @@ import org.hibernate.annotations.NotFoundAction;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.zohar.lottery.constants.Constant;
 
 @Getter
 @Setter
@@ -41,11 +42,18 @@ public class Appeal {
 	private String appealType;
 
 	/**
+	 * 处理方式
+	 */
+	private String processWay;
+
+	/**
 	 * 实际支付金额
 	 */
 	private Double actualPayAmount;
-	
+
 	private String userSreenshotIds;
+	
+	private String merchantSreenshotIds;
 
 	/**
 	 * 客户订单id
@@ -64,5 +72,25 @@ public class Appeal {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "merchant_order_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
 	private MerchantOrder merchantOrder;
+	
+	public void dontProcess() {
+		this.setState(Constant.申诉状态_已完结);
+		this.setProcessWay(Constant.申诉处理方式_不做处理);
+	}
+
+	public void userCancelAppeal() {
+		this.setState(Constant.申诉状态_已完结);
+		this.setProcessWay(Constant.申诉处理方式_用户撤销申诉);
+	}
+	
+	public void alterToActualPayAmount() {
+		this.setState(Constant.申诉状态_已完结);
+		this.setProcessWay(Constant.申诉处理方式_改为实际支付金额);
+	}
+	
+	public void cancelOrder() {
+		this.setState(Constant.申诉状态_已完结);
+		this.setProcessWay(Constant.申诉处理方式_取消订单);
+	}
 
 }

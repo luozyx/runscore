@@ -97,6 +97,32 @@ public class AccountChangeLog {
 	@JoinColumn(name = "user_account_id", updatable = false, insertable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
 	private UserAccount userAccount;
 
+	public static AccountChangeLog buildWithCustomerCancelOrderRefund(UserAccount userAccount,
+			MerchantOrder platformOrder) {
+		AccountChangeLog log = new AccountChangeLog();
+		log.setId(IdUtils.getId());
+		log.setOrderNo(platformOrder.getOrderNo());
+		log.setAccountChangeTime(new Date());
+		log.setAccountChangeTypeCode(Constant.账变日志类型_客服取消订单并退款);
+		log.setAccountChangeAmount(NumberUtil.round(platformOrder.getGatheringAmount(), 4).doubleValue());
+		log.setCashDeposit(userAccount.getCashDeposit());
+		log.setUserAccountId(userAccount.getId());
+		return log;
+	}
+
+	public static AccountChangeLog buildWithAlterToActualPayAmountRefund(UserAccount userAccount, String orderNo,
+			Double refundAmount) {
+		AccountChangeLog log = new AccountChangeLog();
+		log.setId(IdUtils.getId());
+		log.setOrderNo(orderNo);
+		log.setAccountChangeTime(new Date());
+		log.setAccountChangeTypeCode(Constant.账变日志类型_改单为实际支付金额并退款);
+		log.setAccountChangeAmount(NumberUtil.round(refundAmount, 4).doubleValue());
+		log.setCashDeposit(userAccount.getCashDeposit());
+		log.setUserAccountId(userAccount.getId());
+		return log;
+	}
+
 	/**
 	 * 构建充值账变日志
 	 * 

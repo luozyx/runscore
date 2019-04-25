@@ -129,16 +129,11 @@ var platformOrderVM = new Vue({
 					formatter : function(value, row, index) {
 						if (row.orderState == '1') {
 							return [ '<button type="button" class="cancel-order-btn btn btn-outline-danger btn-sm">取消订单</button>' ].join('');
-						} else if (row.orderState == '7') {
-							return [ '<button type="button" class="audit-order-btn btn btn-outline-danger btn-sm">审核订单</button>' ].join('');
 						}
 					},
 					events : {
 						'click .cancel-order-btn' : function(event, value, row, index) {
 							that.cancelOrder(row.id);
-						},
-						'click .audit-order-btn' : function(event, value, row, index) {
-							that.showAuditOrderModal(row);
 						}
 					}
 				} ]

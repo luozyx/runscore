@@ -28,15 +28,6 @@ public class PlatformOrderController {
 		return Result.success();
 	}
 	
-	@GetMapping("/applyCancelOrder")
-	@ResponseBody
-	public Result applyCancelOrder(String orderId) {
-		UserAccountDetails user = (UserAccountDetails) SecurityContextHolder.getContext().getAuthentication()
-				.getPrincipal();
-		platformOrderService.applyCancelOrder(user.getUserAccountId(), orderId);
-		return Result.success();
-	}
-	
 	@GetMapping("/findMyWaitConfirmOrder")
 	@ResponseBody
 	public Result findMyWaitConfirmOrder() {

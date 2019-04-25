@@ -145,11 +145,10 @@ public class MerchantOrder {
 		this.setReceivedTime(new Date());
 	}
 
-	public void unpaidCancelOrder(String note) {
-		this.setOrderState(Constant.商户订单状态_未支付取消订单);
+	public void customerCancelOrderRefund() {
+		this.setOrderState(Constant.商户订单状态_客服取消订单退款);
 		this.setConfirmTime(new Date());
 		this.setDealTime(this.getConfirmTime());
-		this.setNote(note);
 	}
 
 }
