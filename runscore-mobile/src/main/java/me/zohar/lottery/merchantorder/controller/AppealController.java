@@ -44,8 +44,24 @@ public class AppealController {
 	public Result userStartAppeal(UserStartAppealParam param) {
 		UserAccountDetails user = (UserAccountDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
-		param.setInitiatorId(user.getUserAccountId());
-		appealService.userStartAppeal(param);
+		appealService.userStartAppeal(user.getUserAccountId(), param);
+		return Result.success();
+	}
+
+	@GetMapping("/findAppealById")
+	@ResponseBody
+	public Result findAppealById(String appealId) {
+		UserAccountDetails user = (UserAccountDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		return Result.success().setData(appealService.findUserAppealById(user.getUsername(), appealId));
+	}
+
+	@GetMapping("/userUploadSreenshot")
+	@ResponseBody
+	public Result merchantUploadSreenshot(String appealId, String userSreenshotIds) {
+		UserAccountDetails user = (UserAccountDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		appealService.userUploadSreenshot(user.getUserAccountId(), appealId, userSreenshotIds);
 		return Result.success();
 	}
 

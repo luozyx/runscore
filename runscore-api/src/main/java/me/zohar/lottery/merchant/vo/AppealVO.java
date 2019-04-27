@@ -19,6 +19,13 @@ import me.zohar.lottery.merchant.domain.Appeal;
 public class AppealVO {
 
 	private String id;
+	
+	/**
+	 * 发起方
+	 */
+	private String initiatorObj;
+	
+	private String initiatorObjName;
 
 	/**
 	 * 申诉类型
@@ -74,7 +81,7 @@ public class AppealVO {
 	 */
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private Date receivedTime;
-
+	
 	public static List<AppealVO> convertFor(List<Appeal> appeals) {
 		if (CollectionUtil.isEmpty(appeals)) {
 			return new ArrayList<>();
@@ -94,6 +101,7 @@ public class AppealVO {
 		BeanUtils.copyProperties(appeal, vo);
 		vo.setStateName(DictHolder.getDictItemName("appealState", vo.getState()));
 		vo.setAppealTypeName(DictHolder.getDictItemName("appealType", vo.getAppealType()));
+		vo.setInitiatorObjName(DictHolder.getDictItemName("appealInitiatorObj", vo.getInitiatorObj()));
 		vo.setProcessWayName(DictHolder.getDictItemName("appealProcessWay", vo.getProcessWay()));
 		if (StrUtil.isNotBlank(appeal.getUserSreenshotIds())) {
 			vo.setUserSreenshotIds(Arrays.asList(appeal.getUserSreenshotIds().split(",")));

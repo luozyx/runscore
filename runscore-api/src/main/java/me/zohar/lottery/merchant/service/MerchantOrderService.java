@@ -38,7 +38,6 @@ import me.zohar.lottery.common.exception.BizException;
 import me.zohar.lottery.common.valid.ParamValid;
 import me.zohar.lottery.common.vo.PageResult;
 import me.zohar.lottery.constants.Constant;
-import me.zohar.lottery.dictconfig.ConfigHolder;
 import me.zohar.lottery.gatheringcode.domain.GatheringCode;
 import me.zohar.lottery.gatheringcode.repo.GatheringCodeRepo;
 import me.zohar.lottery.mastercontrol.domain.PlatformOrderSetting;
@@ -50,6 +49,7 @@ import me.zohar.lottery.merchant.param.PlatformOrderQueryCondParam;
 import me.zohar.lottery.merchant.param.StartOrderParam;
 import me.zohar.lottery.merchant.repo.MerchantOrderRepo;
 import me.zohar.lottery.merchant.repo.MerchantRepo;
+import me.zohar.lottery.merchant.vo.MerchantOrderDetailsVO;
 import me.zohar.lottery.merchant.vo.MyReceiveOrderRecordVO;
 import me.zohar.lottery.merchant.vo.MyWaitConfirmOrderVO;
 import me.zohar.lottery.merchant.vo.MyWaitReceivingOrderVO;
@@ -82,6 +82,12 @@ public class MerchantOrderService {
 
 	@Autowired
 	private PlatformOrderSettingRepo platformOrderSettingRepo;
+
+	@Transactional(readOnly = true)
+	public MerchantOrderDetailsVO findMerchantOrderDetailsById(@NotBlank String orderId) {
+		MerchantOrderDetailsVO vo = MerchantOrderDetailsVO.convertFor(merchantOrderRepo.getOne(orderId));
+		return vo;
+	}
 
 	@Transactional
 	public void customerCancelOrderRefund(@NotBlank String orderId) {
@@ -139,27 +145,29 @@ public class MerchantOrderService {
 		}
 
 		OrderGatheringCodeVO vo = OrderGatheringCodeVO.convertFor(order);
-		if (Constant.商户订单状态_已接单.equals(vo.getOrderState()) || Constant.商户订单状态_商户已确认支付.equals(vo.getOrderState())) {
-			PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
-			if (merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
-				GatheringCode gatheringCode = gatheringCodeRepo
-						.findTopByUserAccountIdAndGatheringChannelCodeAndFixedGatheringAmountIsFalse(
-								order.getReceivedAccountId(), order.getGatheringChannelCode());
-				if (gatheringCode != null) {
-					String gatheringCodeUrl = ConfigHolder.getConfigValue("storageUrl") + gatheringCode.getStorageId();
-					vo.setGatheringCodeUrl(gatheringCodeUrl);
-				}
-			} else {
-				GatheringCode gatheringCode = gatheringCodeRepo
-						.findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(order.getReceivedAccountId(),
-								order.getGatheringChannelCode(), order.getGatheringAmount());
-				if (gatheringCode != null) {
-					String gatheringCodeUrl = ConfigHolder.getConfigValue("storageUrl") + gatheringCode.getStorageId();
-					vo.setGatheringCodeUrl(gatheringCodeUrl);
-				}
+		return vo;
+	}
+
+	@Transactional(readOnly = true)
+	public String getGatheringCodeStorageId(String receivedAccountId, String gatheringChannelCode,
+			Double gatheringAmount) {
+		PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
+		if (merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
+			GatheringCode gatheringCode = gatheringCodeRepo
+					.findTopByUserAccountIdAndGatheringChannelCodeAndFixedGatheringAmountIsFalse(receivedAccountId,
+							gatheringChannelCode);
+			if (gatheringCode != null) {
+				return gatheringCode.getStorageId();
+			}
+		} else {
+			GatheringCode gatheringCode = gatheringCodeRepo
+					.findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(receivedAccountId,
+							gatheringChannelCode, gatheringAmount);
+			if (gatheringCode != null) {
+				return gatheringCode.getStorageId();
 			}
 		}
-		return vo;
+		return null;
 	}
 
 	@Transactional
@@ -320,14 +328,10 @@ public class MerchantOrderService {
 		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.订单已被接或已取消);
 		}
-		PlatformOrderSetting merchantOrderSetting = platformOrderSettingRepo.findTopByOrderByLatelyUpdateTime();
-		if (!merchantOrderSetting.getUnfixedGatheringCodeReceiveOrder()) {
-			GatheringCode fixedAmountGatheringCode = gatheringCodeRepo
-					.findTopByUserAccountIdAndGatheringChannelCodeAndGatheringAmount(userAccountId,
-							platformOrder.getGatheringChannelCode(), platformOrder.getGatheringAmount());
-			if (fixedAmountGatheringCode == null) {
-				throw new BizException(BizError.无法接单找不到对应金额的收款码);
-			}
+		String gatheringCodeStorageId = getGatheringCodeStorageId(userAccountId,
+				platformOrder.getGatheringChannelCode(), platformOrder.getGatheringAmount());
+		if (StrUtil.isBlank(gatheringCodeStorageId)) {
+			throw new BizException(BizError.无法接单找不到对应金额的收款码);
 		}
 		UserAccount userAccount = userAccountRepo.getOne(userAccountId);
 		Double cashDeposit = NumberUtil.round(userAccount.getCashDeposit() - platformOrder.getGatheringAmount(), 4)
@@ -338,7 +342,7 @@ public class MerchantOrderService {
 
 		userAccount.setCashDeposit(cashDeposit);
 		userAccountRepo.save(userAccount);
-		platformOrder.updateReceived(userAccount.getId());
+		platformOrder.updateReceived(userAccount.getId(), gatheringCodeStorageId);
 		merchantOrderRepo.save(platformOrder);
 		accountChangeLogRepo.save(AccountChangeLog.buildWithReceiveOrderDeduction(userAccount, platformOrder));
 	}
@@ -437,15 +441,18 @@ public class MerchantOrderService {
 		platformOrder.setDealTime(new Date());
 		merchantOrderRepo.save(platformOrder);
 	}
-	
+
 	/**
 	 * 商户取消订单
 	 * 
 	 * @param id
 	 */
 	@Transactional
-	public void merchatCancelOrder(@NotBlank String id) {
+	public void merchatCancelOrder(@NotBlank String merchantId, @NotBlank String id) {
 		MerchantOrder platformOrder = merchantOrderRepo.getOne(id);
+		if (!merchantId.equals(platformOrder.getMerchantId())) {
+			throw new BizException(BizError.无权取消订单);
+		}
 		if (!Constant.商户订单状态_等待接单.equals(platformOrder.getOrderState())) {
 			throw new BizException(BizError.只有等待接单状态的商户订单才能取消);
 		}

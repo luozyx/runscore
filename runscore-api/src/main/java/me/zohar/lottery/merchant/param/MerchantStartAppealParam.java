@@ -11,15 +11,21 @@ import me.zohar.lottery.common.utils.IdUtils;
 import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.merchant.domain.Appeal;
 
+/**
+ * 商户发起申诉入参
+ * @author zohar
+ * @date 2019年4月26日
+ *
+ */
 @Data
-public class UserStartAppealParam {
+public class MerchantStartAppealParam {
 	
 	@NotBlank
 	private String appealType;
 	
 	private Double actualPayAmount;
 	
-	private String userSreenshotIds;
+	private String merchantSreenshotIds;
 	
 	@NotBlank
 	private String merchantOrderId;
@@ -28,7 +34,7 @@ public class UserStartAppealParam {
 		Appeal po = new Appeal();
 		BeanUtils.copyProperties(this, po);
 		po.setId(IdUtils.getId());
-		po.setInitiatorObj(Constant.申诉发起方_用户);
+		po.setInitiatorObj(Constant.申诉发起方_商户);
 		po.setState(Constant.申诉状态_待处理);
 		po.setInitiationTime(new Date());
 		return po;

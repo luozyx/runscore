@@ -10,18 +10,35 @@ var platformOrderVM = new Vue({
 		receiverUserName : '',
 		submitStartTime : dayjs().format('YYYY-MM-DD'),
 		submitEndTime : dayjs().format('YYYY-MM-DD'),
+		showMerchantRecordFlag : true,
 
-		auditPlatformOrderFlag : false,
-		auditPlatformOrder : '',
-		auditNote : '',
+		showAddOrderFlag : false,
+		gatheringChannelCodeWithAddOrder : '',
+		gatheringAmountWithAddOrder : '',
+
+		showOrderDetailsFlag : false,
+		selectedOrderDetails : {},
+
+		showStartAppealFlag : false,
+		appealTypeDictItems : [],
+		appealType : '',
+		actualPayAmount : '',
+		merchantSreenshotIds : ''
 	},
 	computed : {},
 	created : function() {
 	},
 	mounted : function() {
-		this.loadGatheringChannelDictItem();
-		this.loadPlatformOrderStateDictItem();
-		this.initTable();
+		var that = this;
+		that.loadGatheringChannelDictItem();
+		that.loadPlatformOrderStateDictItem();
+		that.loadAppealTypeDictItem();
+		that.initTable();
+
+		$('.sreenshot').on('filebatchuploadsuccess', function(event, data) {
+			that.merchantSreenshotIds = data.response.data.join(',');
+			that.merchantStartAppealInner();
+		});
 	},
 	methods : {
 		/**
@@ -49,6 +66,17 @@ var platformOrderVM = new Vue({
 				}
 			}).then(function(res) {
 				this.platformOrderStateDictItems = res.body.data;
+			});
+		},
+
+		loadAppealTypeDictItem : function() {
+			var that = this;
+			that.$http.get('/dictconfig/findDictItemInCache', {
+				params : {
+					dictTypeCode : 'appealType'
+				}
+			}).then(function(res) {
+				this.appealTypeDictItems = res.body.data;
 			});
 		},
 
@@ -98,12 +126,9 @@ var platformOrderVM = new Vue({
 					field : 'orderStateName',
 					title : '订单状态'
 				}, {
-					title : '收款渠道/收款金额/奖励金',
+					title : '收款渠道/收款金额',
 					formatter : function(value, row, index, field) {
 						var text = row.gatheringChannelName + '/' + row.gatheringAmount + '元';
-						if (row.bounty != null) {
-							text += '/' + row.bounty + '元';
-						}
 						return text;
 					}
 				}, {
@@ -125,17 +150,17 @@ var platformOrderVM = new Vue({
 					title : '操作',
 					formatter : function(value, row, index) {
 						if (row.orderState == '1') {
-							return [ '<button type="button" class="cancel-order-btn btn btn-outline-danger btn-sm">取消订单</button>' ].join('');
-						} else if (row.orderState == '7') {
-							return [ '<button type="button" class="audit-order-btn btn btn-outline-danger btn-sm">审核订单</button>' ].join('');
+							return [ '<button type="button" class="order-details-btn btn btn-outline-info btn-sm" style="margin-right: 4px;">订单详情</button>', '<button type="button" class="cancel-order-btn btn btn-outline-danger btn-sm">取消订单</button>' ].join('');
+						} else {
+							return [ '<button type="button" class="order-details-btn btn btn-outline-info btn-sm">订单详情</button>' ].join('');
 						}
 					},
 					events : {
 						'click .cancel-order-btn' : function(event, value, row, index) {
 							that.cancelOrder(row.id);
 						},
-						'click .audit-order-btn' : function(event, value, row, index) {
-							that.showAuditOrderModal(row);
+						'click .order-details-btn' : function(event, value, row, index) {
+							that.showOrderDetailsPage(row.id);
 						}
 					}
 				} ]
@@ -148,6 +173,60 @@ var platformOrderVM = new Vue({
 			});
 		},
 
+		showAddOrderModal : function() {
+			this.showAddOrderFlag = true;
+			this.gatheringChannelCodeWithAddOrder = '';
+			this.gatheringAmountWithAddOrder = '';
+		},
+
+		addOrder : function() {
+			var that = this;
+			if (that.gatheringChannelCodeWithAddOrder == null || that.gatheringChannelCodeWithAddOrder == '') {
+				layer.alert('请选择收款渠道', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			if (that.gatheringAmountWithAddOrder == null || that.gatheringAmountWithAddOrder == '') {
+				layer.alert('请选择收款金额', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			that.$http.post('/merchantOrder/startOrder', {
+				gatheringChannelCode : that.gatheringChannelCodeWithAddOrder,
+				gatheringAmount : that.gatheringAmountWithAddOrder
+			}, {
+				emulateJSON : true
+			}).then(function(res) {
+				layer.alert('操作成功!', {
+					icon : 1,
+					time : 3000,
+					shade : false
+				});
+				that.showAddOrderFlag = false;
+				that.refreshTable();
+			});
+		},
+
+		showOrderDetailsPage : function(orderId) {
+			var that = this;
+			that.$http.get('/merchantOrder/findMerchantOrderDetailsById', {
+				params : {
+					orderId : orderId
+				}
+			}).then(function(res) {
+				that.selectedOrderDetails = res.body.data;
+				that.showMerchantRecordFlag = false;
+				that.showOrderDetailsFlag = true;
+				that.showStartAppealFlag = false;
+			});
+		},
+
 		cancelOrder : function(id) {
 			var that = this;
 			layer.confirm('确定要取消订单吗?', {
@@ -155,7 +234,7 @@ var platformOrderVM = new Vue({
 				title : '提示'
 			}, function(index) {
 				layer.close(index);
-				that.$http.get('/platformOrder/cancelOrder', {
+				that.$http.get('/merchantOrder/merchantCancelOrder', {
 					params : {
 						id : id
 					}
@@ -165,38 +244,114 @@ var platformOrderVM = new Vue({
 						time : 3000,
 						shade : false
 					});
+					that.showAddOrderFlag = false;
 					that.refreshTable();
 				});
 			});
 		},
 
-		showAuditOrderModal : function(platformOrder) {
-			this.auditPlatformOrderFlag = true;
-			this.auditPlatformOrder = platformOrder;
-			this.auditNote = '';
+		showMerchantRecordPage : function() {
+			this.showMerchantRecordFlag = true;
+			this.showOrderDetailsFlag = false;
+			this.showStartAppealFlag = false;
+			this.refreshTable();
 		},
 
-		audit : function(action) {
-			var that = this;
-			var url = '/platformOrder/customerServiceConfirmToPaid';
-			if (action == 2) {
-				url = '/platformOrder/unpaidCancelOrder';
+		showStartAppealPage : function() {
+			this.showMerchantRecordFlag = false;
+			this.showOrderDetailsFlag = false;
+			this.showStartAppealFlag = true;
+			this.appealType = '';
+			this.actualPayAmount = '';
+			this.initFileUploadWidget();
+		},
+
+		initFileUploadWidget : function(storageId) {
+			var initialPreview = [];
+			var initialPreviewConfig = [];
+			if (storageId != null) {
+				initialPreview.push('/storage/fetch/' + storageId);
+				initialPreviewConfig.push({
+					downloadUrl : '/storage/fetch/' + storageId
+				});
 			}
-			that.$http.get(url, {
-				params : {
-					id : that.auditPlatformOrder.id,
-					note : that.auditNote
+			$('.sreenshot').fileinput('destroy').fileinput({
+				uploadAsync : false,
+				browseOnZoneClick : true,
+				showBrowse : false,
+				showCaption : false,
+				showClose : true,
+				showRemove : false,
+				showUpload : false,
+				dropZoneTitle : '点击选择图片',
+				dropZoneClickTitle : '',
+				layoutTemplates : {
+					footer : ''
+				},
+				maxFileCount : 2,
+				uploadUrl : '/storage/uploadPic',
+				enctype : 'multipart/form-data',
+				allowedFileExtensions : [ 'jpg', 'png', 'bmp', 'jpeg' ],
+				initialPreview : initialPreview,
+				initialPreviewAsData : true,
+				initialPreviewConfig : initialPreviewConfig
+			});
+		},
+
+		merchantStartAppeal : function() {
+			var that = this;
+			if (that.appealType == null || that.appealType == '') {
+				layer.alert('请选择申诉类型', {
+					title : '提示',
+					icon : 7,
+					time : 3000
+				});
+				return;
+			}
+			if (that.appealType == '2') {
+				if (that.actualPayAmount == null || that.actualPayAmount == '') {
+					layer.alert('请输入实际支付金额', {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+					return;
 				}
+			}
+			if (that.appealType == '2' || that.appealType == '3') {
+				var filesCount = $('.sreenshot').fileinput('getFilesCount');
+				if (filesCount == 0) {
+					layer.alert('请上传截图', {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+					return;
+				}
+				$('.sreenshot').fileinput('upload');
+			} else {
+				that.merchantSreenshotIds = '';
+				that.merchantStartAppealInner();
+			}
+		},
+
+		merchantStartAppealInner : function() {
+			var that = this;
+			that.$http.post('/appeal/merchantStartAppeal', {
+				appealType : that.appealType,
+				actualPayAmount : that.actualPayAmount,
+				merchantSreenshotIds : that.merchantSreenshotIds,
+				merchantOrderId : that.selectedOrderDetails.id
+			}, {
+				emulateJSON : true
 			}).then(function(res) {
 				layer.alert('操作成功!', {
 					icon : 1,
 					time : 3000,
 					shade : false
 				});
-				this.auditPlatformOrderFlag = false;
-				that.refreshTable();
+				that.showMerchantRecordPage();
 			});
 		}
-
 	}
 });

@@ -13,7 +13,7 @@ import me.zohar.lottery.common.param.PageParam;
 public class AppealQueryCondParam extends PageParam {
 
 	private String orderNo;
-
+	
 	private String merchantName;
 
 	private String gatheringChannelCode;
@@ -37,5 +37,7 @@ public class AppealQueryCondParam extends PageParam {
 	 */
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date initiationEndTime;
+	
+	private String initiatorObj;
 
 }

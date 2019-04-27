@@ -25,6 +25,8 @@ public class MerchantAccountDetails implements UserDetails {
 
 	private String merchantName;
 
+	private String secretKey;
+
 	public MerchantAccountDetails(LoginAccountInfoVO loginAccountInfo, MerchantVO merchant) {
 		if (loginAccountInfo != null) {
 			this.id = loginAccountInfo.getId();
@@ -34,6 +36,7 @@ public class MerchantAccountDetails implements UserDetails {
 		if (merchant != null) {
 			this.merchantId = merchant.getId();
 			this.merchantName = merchant.getName();
+			this.secretKey = merchant.getSecretKey();
 		}
 	}
 
@@ -62,6 +65,10 @@ public class MerchantAccountDetails implements UserDetails {
 	 */
 	public String getMerchantName() {
 		return this.merchantName;
+	}
+
+	public String getSecretKey() {
+		return this.secretKey;
 	}
 
 	@Override

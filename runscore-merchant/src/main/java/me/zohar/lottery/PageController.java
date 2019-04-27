@@ -22,26 +22,6 @@ public class PageController {
 	}
 
 	/**
-	 * 投注记录
-	 * 
-	 * @return
-	 */
-	@GetMapping("/betting-record")
-	public String bettingRecord() {
-		return "betting-record";
-	}
-
-	/**
-	 * 账号管理
-	 * 
-	 * @return
-	 */
-	@GetMapping("/account-manage")
-	public String accountManage() {
-		return "account-manage";
-	}
-
-	/**
 	 * 帐变日志
 	 * 
 	 * @return
@@ -70,36 +50,6 @@ public class PageController {
 	public String withdrawRecord() {
 		return "withdraw-record";
 	}
-
-	/**
-	 * 配置项管理
-	 * 
-	 * @return
-	 */
-	@GetMapping("/config-manage")
-	public String configManage() {
-		return "config-manage";
-	}
-
-	/**
-	 * 字典管理
-	 * 
-	 * @return
-	 */
-	@GetMapping("/dict-manage")
-	public String dictManage() {
-		return "dict-manage";
-	}
-
-	/**
-	 * 总控室
-	 * 
-	 * @return
-	 */
-	@GetMapping("/master-control-room")
-	public String masterControlRoom() {
-		return "master-control-room";
-	}
 	
 	/**
 	 * 平台订单
@@ -109,16 +59,6 @@ public class PageController {
 	@GetMapping("/platform-order")
 	public String platformOrder() {
 		return "platform-order";
-	}
-	
-	/**
-	 * 接入商家
-	 * 
-	 * @return
-	 */
-	@GetMapping("/merchant")
-	public String merchant() {
-		return "merchant";
 	}
 	
 	/**
@@ -132,24 +72,15 @@ public class PageController {
 	}
 	
 	/**
-	 * 收款码
+	 * 申诉记录
 	 * 
 	 * @return
 	 */
-	@GetMapping("/gathering-code")
-	public String gatheringCode() {
-		return "gathering-code";
+	@GetMapping("/appeal-record")
+	public String appealRecord() {
+		return "appeal-record";
 	}
 	
-	/**
-	 * 邀请码
-	 * 
-	 * @return
-	 */
-	@GetMapping("/invite-code")
-	public String inviteCode() {
-		return "invite-code";
-	}
 
 
 }

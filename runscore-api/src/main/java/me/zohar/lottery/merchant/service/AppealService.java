@@ -31,6 +31,7 @@ import me.zohar.lottery.constants.Constant;
 import me.zohar.lottery.merchant.domain.Appeal;
 import me.zohar.lottery.merchant.domain.MerchantOrder;
 import me.zohar.lottery.merchant.param.AppealQueryCondParam;
+import me.zohar.lottery.merchant.param.MerchantStartAppealParam;
 import me.zohar.lottery.merchant.param.UserStartAppealParam;
 import me.zohar.lottery.merchant.repo.AppealRepo;
 import me.zohar.lottery.merchant.repo.MerchantOrderRepo;
@@ -63,6 +64,79 @@ public class AppealService {
 
 	@Autowired
 	private AccountChangeLogRepo accountChangeLogRepo;
+
+	@Transactional
+	public void userUploadSreenshot(@NotBlank String receivedAccountId, @NotBlank String appealId,
+			@NotBlank String userSreenshotIds) {
+		Appeal appeal = appealRepo.getOne(appealId);
+		MerchantOrder merchantOrder = appeal.getMerchantOrder();
+		if (!receivedAccountId.equals(merchantOrder.getReceivedAccountId())) {
+			throw new BizException(BizError.无权上传截图);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.只有待处理的申诉记录才能上传截图);
+		}
+		if (StrUtil.isNotBlank(appeal.getUserSreenshotIds())) {
+			throw new BizException(BizError.已有截图不能重复上传);
+		}
+
+		appeal.setUserSreenshotIds(userSreenshotIds);
+		appealRepo.save(appeal);
+		for (String sreenshotId : userSreenshotIds.split(",")) {
+			Storage storage = storageRepo.getOne(sreenshotId);
+			storage.setAssociateId(appeal.getId());
+			storage.setAssociateBiz("appealSreenshot");
+			storageRepo.save(storage);
+		}
+	}
+
+	@Transactional
+	public void merchantUploadSreenshot(@NotBlank String merchantId, @NotBlank String appealId,
+			@NotBlank String merchantSreenshotIds) {
+		Appeal appeal = appealRepo.getOne(appealId);
+		MerchantOrder merchantOrder = appeal.getMerchantOrder();
+		if (!merchantId.equals(merchantOrder.getMerchantId())) {
+			throw new BizException(BizError.无权上传截图);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.只有待处理的申诉记录才能上传截图);
+		}
+		if (StrUtil.isNotBlank(appeal.getMerchantSreenshotIds())) {
+			throw new BizException(BizError.已有截图不能重复上传);
+		}
+
+		appeal.setMerchantSreenshotIds(merchantSreenshotIds);
+		appealRepo.save(appeal);
+		for (String sreenshotId : merchantSreenshotIds.split(",")) {
+			Storage storage = storageRepo.getOne(sreenshotId);
+			storage.setAssociateId(appeal.getId());
+			storage.setAssociateBiz("appealSreenshot");
+			storageRepo.save(storage);
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public AppealVO findUserAppealById(@NotBlank String userName, @NotBlank String appealId) {
+		AppealVO vo = findAppealById(appealId);
+		if (!userName.equals(vo.getReceiverUserName())) {
+			throw new BizException(BizError.无权查看数据);
+		}
+		return vo;
+	}
+
+	@Transactional(readOnly = true)
+	public AppealVO findMerchantAppealById(@NotBlank String merchantName, @NotBlank String appealId) {
+		AppealVO vo = findAppealById(appealId);
+		if (!merchantName.equals(vo.getMerchantName())) {
+			throw new BizException(BizError.无权查看数据);
+		}
+		return vo;
+	}
+
+	@Transactional(readOnly = true)
+	public AppealVO findAppealById(@NotBlank String appealId) {
+		return AppealVO.convertFor(appealRepo.getOne(appealId));
+	}
 
 	@Transactional
 	public void dontProcess(@NotBlank String appealId) {
@@ -167,6 +241,9 @@ public class AppealService {
 					predicates.add(builder.lessThanOrEqualTo(root.get("initiationTime").as(Date.class),
 							DateUtil.endOfDay(param.getInitiationEndTime())));
 				}
+				if (StrUtil.isNotBlank(param.getInitiatorObj())) {
+					predicates.add(builder.equal(root.get("initiatorObj"), param.getInitiatorObj()));
+				}
 				return predicates.size() > 0 ? builder.and(predicates.toArray(new Predicate[predicates.size()])) : null;
 			}
 		};
@@ -183,10 +260,6 @@ public class AppealService {
 		if (appeal == null) {
 			throw new BizException(BizError.参数异常);
 		}
-		if (!(Constant.申诉类型_未支付申请取消订单.equals(appeal.getAppealType())
-				|| Constant.申诉类型_实际支付金额小于收款金额.equals(appeal.getAppealType()))) {
-			throw new BizException(BizError.无权撤销申诉);
-		}
 		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
 			throw new BizException(BizError.无权撤销申诉);
 		}
@@ -197,13 +270,45 @@ public class AppealService {
 		if (!merchantOrder.getReceivedAccountId().equals(userAccountId)) {
 			throw new BizException(BizError.无权撤销申诉);
 		}
+		if (!Constant.申诉发起方_用户.equals(appeal.getInitiatorObj())) {
+			throw new BizException(BizError.不是申诉发起方无权撤销申诉);
+		}
+		if (StrUtil.isNotBlank(appeal.getMerchantSreenshotIds())) {
+			throw new BizException(BizError.商户已提供截图无法撤销申诉);
+		}
 		appeal.userCancelAppeal();
+		appealRepo.save(appeal);
+	}
+
+	@Transactional
+	public void merchantCancelAppeal(@NotBlank String merchantId, @NotBlank String appealId) {
+		Appeal appeal = appealRepo.findById(appealId).orElse(null);
+		if (appeal == null) {
+			throw new BizException(BizError.参数异常);
+		}
+		if (!Constant.申诉状态_待处理.equals(appeal.getState())) {
+			throw new BizException(BizError.无权撤销申诉);
+		}
+		MerchantOrder merchantOrder = appeal.getMerchantOrder();
+		if (merchantOrder == null) {
+			throw new BizException(BizError.商户订单不存在);
+		}
+		if (!merchantOrder.getMerchantId().equals(merchantId)) {
+			throw new BizException(BizError.无权撤销申诉);
+		}
+		if (!Constant.申诉发起方_商户.equals(appeal.getInitiatorObj())) {
+			throw new BizException(BizError.不是申诉发起方无权撤销申诉);
+		}
+		if (StrUtil.isNotBlank(appeal.getUserSreenshotIds())) {
+			throw new BizException(BizError.用户已提供截图无法撤销申诉);
+		}
+		appeal.merchantCancelAppeal();
 		appealRepo.save(appeal);
 	}
 
 	@ParamValid
 	@Transactional
-	public void userStartAppeal(UserStartAppealParam param) {
+	public void userStartAppeal(String receivedAccountId, UserStartAppealParam param) {
 		if (!Constant.申诉类型_未支付申请取消订单.equals(param.getAppealType())
 				&& !Constant.申诉类型_实际支付金额小于收款金额.equals(param.getAppealType())) {
 			throw new BizException(BizError.参数异常);
@@ -216,6 +321,11 @@ public class AppealService {
 				throw new BizException(BizError.参数异常);
 			}
 		}
+		MerchantOrder merchantOrder = merchantOrderRepo.findByIdAndReceivedAccountId(param.getMerchantOrderId(),
+				receivedAccountId);
+		if (merchantOrder == null) {
+			throw new BizException(BizError.商户订单不存在);
+		}
 		Appeal existAppeal = appealRepo.findByMerchantOrderIdAndState(param.getMerchantOrderId(), Constant.申诉状态_待处理);
 		if (existAppeal != null) {
 			throw new BizException(BizError.该订单存在未处理的申诉记录不能重复发起);
@@ -224,6 +334,41 @@ public class AppealService {
 		appealRepo.save(appeal);
 		if (StrUtil.isNotBlank(param.getUserSreenshotIds())) {
 			for (String sreenshotId : param.getUserSreenshotIds().split(",")) {
+				Storage storage = storageRepo.getOne(sreenshotId);
+				storage.setAssociateId(appeal.getId());
+				storage.setAssociateBiz("appealSreenshot");
+				storageRepo.save(storage);
+			}
+		}
+	}
+
+	@ParamValid
+	@Transactional
+	public void merchantStartAppeal(String merchantId, MerchantStartAppealParam param) {
+		if (!Constant.申诉类型_已支付用户未进行确认.equals(param.getAppealType())
+				&& !Constant.申诉类型_实际支付金额小于收款金额.equals(param.getAppealType())) {
+			throw new BizException(BizError.参数异常);
+		}
+		if (Constant.申诉类型_实际支付金额小于收款金额.equals(param.getAppealType())) {
+			if (param.getActualPayAmount() == null || param.getActualPayAmount() <= 0) {
+				throw new BizException(BizError.参数异常);
+			}
+			if (StrUtil.isBlank(param.getMerchantSreenshotIds())) {
+				throw new BizException(BizError.参数异常);
+			}
+		}
+		MerchantOrder merchantOrder = merchantOrderRepo.findByIdAndMerchantId(param.getMerchantOrderId(), merchantId);
+		if (merchantOrder == null) {
+			throw new BizException(BizError.商户订单不存在);
+		}
+		Appeal existAppeal = appealRepo.findByMerchantOrderIdAndState(param.getMerchantOrderId(), Constant.申诉状态_待处理);
+		if (existAppeal != null) {
+			throw new BizException(BizError.该订单存在未处理的申诉记录不能重复发起);
+		}
+		Appeal appeal = param.convertToPo();
+		appealRepo.save(appeal);
+		if (StrUtil.isNotBlank(param.getMerchantSreenshotIds())) {
+			for (String sreenshotId : param.getMerchantSreenshotIds().split(",")) {
 				Storage storage = storageRepo.getOne(sreenshotId);
 				storage.setAssociateId(appeal.getId());
 				storage.setAssociateBiz("appealSreenshot");

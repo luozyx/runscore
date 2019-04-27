@@ -37,10 +37,15 @@ public class Appeal {
 	private String id;
 
 	/**
+	 * 发起方
+	 */
+	private String initiatorObj;
+	
+	/**
 	 * 申诉类型
 	 */
 	private String appealType;
-
+	
 	/**
 	 * 处理方式
 	 */
@@ -81,6 +86,11 @@ public class Appeal {
 	public void userCancelAppeal() {
 		this.setState(Constant.申诉状态_已完结);
 		this.setProcessWay(Constant.申诉处理方式_用户撤销申诉);
+	}
+	
+	public void merchantCancelAppeal() {
+		this.setState(Constant.申诉状态_已完结);
+		this.setProcessWay(Constant.申诉处理方式_商户撤销申诉);
 	}
 	
 	public void alterToActualPayAmount() {

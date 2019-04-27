@@ -86,6 +86,8 @@ public class MerchantOrder {
 	 * 接单时间
 	 */
 	private Date receivedTime;
+	
+	private String gatheringCodeStorageId;
 
 	/**
 	 * 商户确认时间
@@ -139,8 +141,9 @@ public class MerchantOrder {
 		this.setNote(note);
 	}
 
-	public void updateReceived(String receivedAccountId) {
+	public void updateReceived(String receivedAccountId, String gatheringCodeStorageId) {
 		this.setReceivedAccountId(receivedAccountId);
+		this.setGatheringCodeStorageId(gatheringCodeStorageId);
 		this.setOrderState(Constant.商户订单状态_已接单);
 		this.setReceivedTime(new Date());
 	}
