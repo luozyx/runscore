@@ -4,9 +4,9 @@
 
 ## 截图
 
-| h5首页 | 我的主页 |
-| :------: | :------: |
-| ![h5首页](https://github.com/zohar001/runscore/blob/master/pic/1.jpg) | ![我的主页](https://github.com/zohar001/runscore/blob/master/pic/2.jpg) |
+| h5首页 | 我的主页 | 收款码 |
+| :------: | :------: | :------: |
+| ![h5首页](https://github.com/zohar001/runscore/blob/master/pic/1.jpg) | ![我的主页](https://github.com/zohar001/runscore/blob/master/pic/2.jpg) | ![收款码](https://github.com/zohar001/runscore/blob/master/pic/3.jpg) |
 
 > 由于程序不断优化，界面细节可能有所变化，请以实际页面为准
 
