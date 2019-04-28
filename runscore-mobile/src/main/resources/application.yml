@@ -35,4 +35,4 @@ jetcache:
       keyConvertor: fastjson
       uri: redis://127.0.0.1:6379/
 storage:
-  storagePath: E:\tmp\pic
+  storagePath: storage
