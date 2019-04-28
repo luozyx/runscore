@@ -4,9 +4,9 @@
 
 ## 截图
 
-| Feeds | Issues |
+| h5首页 | 我的主页 |
 | :------: | :------: |
-| ![feeds](https://user-images.githubusercontent.com/15965696/56143752-a7d4f380-5fd3-11e9-964e-627c21919485.jpg) | ![my-issues](https://user-images.githubusercontent.com/15965696/56143750-a73c5d00-5fd3-11e9-9191-f2915088aa54.jpg) |
+| ![h5首页](https://github.com/zohar001/runscore/blob/master/pic/1.jpg) | ![我的主页](https://github.com/zohar001/runscore/blob/master/pic/2.jpg) |
 
 > 由于程序不断优化，界面细节可能有所变化，请以实际页面为准
 
