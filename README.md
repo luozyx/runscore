@@ -4,13 +4,17 @@
 
 ## 截图
 
-| Feeds | Issues |
-| :------: | :------: |
-| ![feeds](https://user-images.githubusercontent.com/15965696/56143752-a7d4f380-5fd3-11e9-964e-627c21919485.jpg) | ![my-issues](https://user-images.githubusercontent.com/15965696/56143750-a73c5d00-5fd3-11e9-9191-f2915088aa54.jpg) |
+| h5首页 | 我的主页 | 收款码 |
+| :------: | :------: | :------: |
+| ![h5首页](https://github.com/zohar001/runscore/blob/master/pic/1.jpg) | ![我的主页](https://github.com/zohar001/runscore/blob/master/pic/2.jpg) | ![收款码](https://github.com/zohar001/runscore/blob/master/pic/3.jpg) |
+
+| 接单 | 后台统计 | 后台商户订单 |
+| :------: | :------: | :------: |
+| ![接单](https://github.com/zohar001/runscore/blob/master/pic/4.jpg) | ![后台统计](https://github.com/zohar001/runscore/blob/master/pic/5.jpg) | ![后台商户订单](https://github.com/zohar001/runscore/blob/master/pic/6.jpg) |
 
 > 由于程序不断优化，界面细节可能有所变化，请以实际页面为准
 
-> 作者不喝咖啡 :coffee: 只喝茶 :tea:
+> 作者不喝咖啡 :coffee: 只喝茶 :tea: 觉得有帮助的可以请我喝茶
 
 
 | 支付宝 | 微信支付 |
